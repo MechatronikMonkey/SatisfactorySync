@@ -81,6 +81,68 @@ You will be prompted on downloading the first time.
 
 Press **Save**
 
+
+Go back to Sync Page and
+
+## First dowload of a game ##
+
+If you just entered your settings and want to download a game that has never been downloaded before, you should see something like this:
+
+![image](https://github.com/user-attachments/assets/ef4ffbc6-1895-44cb-866c-925432aaab74)
+
+Press the red DOWN arrow to download the savegame for the first time.
+You will be prompted to select the correct save game. The list you see is a list from the server.
+Pick the correct save game (you may need to talk to your friends) here and press "Auswählen".
+
+![image](https://github.com/user-attachments/assets/bf05d292-cbb6-4754-ae10-4fdbf308d049)
+
+After that a new window will appear for you to select the destination of that savegame.
+Locate it under something like this: C:\Users\yourUsername\AppData\Local\FactoryGame\Saved\SaveGames\YourSteamID\YourSaveGameName.sav
+DO NOT change the name that is provided for the .sav file. This will break sync! Just use default name provided.
+
+![image](https://github.com/user-attachments/assets/f5b550bb-253c-4d0b-9f57-be50891df470)
+
+Press Save!
+
+You now get **three** messages, one for successfull download, one for successfull update of XML file to the server and one for successfull save all settings.
+
+## Ready Setup looks like this ##
+
+If everything is correct, you see a screen like this
+
+![image](https://github.com/user-attachments/assets/84f49e0f-a6e1-40e4-8594-b9075416c89c)
+
+What you can see here is, that player-A uploaded the game at 05:30:25
+And player-B downloaded it at 06:05:34
+
+So you can assume, that player B is still playing, as he has no re uploaded the savegame.
+
+## Third player interrupts while others are playing ##
+
+If a third player tries to download the game while others are playing (lets assume player-C), he sees an error message:
+
+![image](https://github.com/user-attachments/assets/c35416ba-d482-4b93-9c93-84b4c807c514)
+
+Best is to press "Nein" here. Otherwise it will download the game and set last download user to player-C.
+But you can press "Ja" to download save game anyway. Now you are the one with the last download.
+Talk to each other, and only click "Ja" if you are absolutely shure!
+
+![image](https://github.com/user-attachments/assets/a636dad0-5e41-4b6b-b057-62923c2e0e8a)
+
+But before it was player-B who downloaded the game and started to play.
+If he (player-B) now tries to upload his finished save game, he will see the following message:
+
+![image](https://github.com/user-attachments/assets/8134c884-9a2c-45ab-be64-4717b31aa824)
+
+Because player C downloaded the game in parallel and may also play on the same save game base.
+
+If you press "Ja" the upload will continue and you are the uploader of the last save now **overwriting** the last upload from player-A
+
+
+
+
+
+
 ## Start a new game
 First of all get the ftp credentials of a free ftp server or your webspace ftp or the fpt of a friend or so.
 Switch to settings tab and enter the credentials along with your name.
