@@ -45,14 +45,43 @@ This should fail as you have not entered the credentials.
 This is all ok for now.
 Form here there are **two cases**. You may download a game a friends already uploaded or you first upload a game.
 
-### Download existing game
+## Download existing game ##
 
-Opitonal:
-If your friend has started a game, he should export his settings to an XML file and provide this settings file to you.
-On the settings page click "import..." to locate the file and import the settings. 
-You get asked if you want to change the name to your own (what you normaly want).
+### Import Settings ###
+If your friend has started a game, he should export his settings (see below) and provide the settings file to you.
+Save it to your computer and open it with import... under Settings tab.
 
-### Start a new game
+![image](https://github.com/user-attachments/assets/50051bad-0447-4ca2-8328-58ba1648c401)
+
+After you selected the file you are prompted to enter your name. Lets assume we are player-B
+
+![image](https://github.com/user-attachments/assets/c54a9961-346f-4159-a7c0-316857015492)
+
+After successfull import of the proper settings you should see "Status update erfolgreich..." on the bottom of the app.
+
+![image](https://github.com/user-attachments/assets/f0db2fef-b9aa-4509-b3bf-d9782cb95c69)
+
+### Manually insert settings ###
+
+If you enter your credentials manually, you first get an error message as long as no settings file is provided.
+To make it easy for you to pick the correct settings file, you can use the picker.
+
+![image](https://github.com/user-attachments/assets/b84d0cc7-b8a8-4cc3-a480-3ea938a6fa4c)
+
+Pick the correct settings file to your game. You may need to talk to your frieds ;-)
+
+![image](https://github.com/user-attachments/assets/2b5d3882-c300-4afd-8d17-b8bbc7244fae)
+
+After picking the correct settings file you should see proper connection on the bottom of the app.
+
+![image](https://github.com/user-attachments/assets/f0db2fef-b9aa-4509-b3bf-d9782cb95c69)
+
+**DO NOT ENTER A SAVEGAME path if you are DOWNLOADING a save game for the first time!** 
+You will be prompted on downloading the first time.
+
+Press **Save**
+
+## Start a new game
 First of all get the ftp credentials of a free ftp server or your webspace ftp or the fpt of a friend or so.
 Switch to settings tab and enter the credentials along with your name.
 
@@ -93,6 +122,13 @@ After that is completed, you see "Status update erfolgreich..." in the bottom an
 
 ![image](https://github.com/user-attachments/assets/8e651785-08c0-4cc7-8741-bc08ed7fd4e2)
 
+## Export settings ###
+After your first upload you should save the settings for your friends to make it easyier for them to setup.
+Go to Settings tab and click export
+
+![image](https://github.com/user-attachments/assets/03b5d373-6e48-47ee-a5ec-4b4c426c9a0a)
+
+Save the xml file and share it with your friends by discord or email.
 
 
 
