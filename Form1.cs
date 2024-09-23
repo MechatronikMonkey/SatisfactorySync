@@ -74,28 +74,45 @@ namespace V1
             // Dateipfad der gespeicherten Settings festlegen
             string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SatisfactorySyncSettings.json");
 
-            // JSON-Inhalt lesen und in ein AppSettings-Objekt deserialisieren
-            string json = File.ReadAllText(filePath);
-            SSSettings settings = System.Text.Json.JsonSerializer.Deserialize<SSSettings>(json);
+            try
+            {
+                // JSON-Inhalt lesen und in ein AppSettings-Objekt deserialisieren
+                string json = File.ReadAllText(filePath);
+                SSSettings settings = System.Text.Json.JsonSerializer.Deserialize<SSSettings>(json);
 
-            // TextBox-Werte mit den geladenen Properties füllen
-            txtName.Text = settings.name;
-            txtFTP.Text = settings.ftpAddress;
-            txtUser.Text = settings.user;
-            txtPass.Text = settings.pass;
-            txtSettingsFile.Text = settings.file;
-            txtPathToSave.Text = settings.pathToSave;
-
+                // TextBox-Werte mit den geladenen Properties füllen
+                txtName.Text = settings.name;
+                txtFTP.Text = settings.ftpAddress;
+                txtUser.Text = settings.user;
+                txtPass.Text = settings.pass;
+                txtSettingsFile.Text = settings.file;
+                txtPathToSave.Text = settings.pathToSave;
+            }
+            catch { }
         }
 
         private void btnUPLOAD_Click(object sender, EventArgs e)
         {
+            bool isfirstsetup = false;
 
             // 0. Vergleich der Datumswerte
-            DateTime lastUpdateDate = DateTime.Parse(txtLastUPdate.Text);
-            DateTime lastDownloadDate = DateTime.Parse(txtLastDOWNdate.Text);
+            try
+            {
+                DateTime lastDownloadDate = DateTime.Parse(txtLastDOWNdate.Text);
+            }
+            catch { }
 
-            if (txtName.Text != txtLastDOWNname.Text)
+            try
+            {
+                DateTime lastUpdateDate = DateTime.Parse(txtLastUPdate.Text);
+            }
+            catch 
+            {
+                //never uploaded before, looks like we have first setup
+                isfirstsetup = true;
+            }
+
+            if (txtName.Text != txtLastDOWNname.Text && isfirstsetup == false)
             {
                 // Warnung, anderer User im Spiel
                 DialogResult result = MessageBox.Show(
@@ -107,12 +124,12 @@ namespace V1
 
                 if (result == DialogResult.No)
                 {
-                    txtStatus.Text = "Uplad abgebrochen.";
+                    txtStatus.Text = "Upload abgebrochen.";
                     return;
                 }
             }
 
-            string xmlFilePath = Path.Combine(Path.GetTempPath(), "updownstate.xml");
+            string xmlFilePath = Path.Combine(Path.GetTempPath(), txtSettingsFile.Text);
             string binaryFilePath = txtPathToSave.Text; // Absoluter Pfad zur bestehenden Binärdatei
             UP_DOWN_State settings;
 
@@ -191,7 +208,7 @@ namespace V1
             // 2. XML-Datei hochladen
             try
             {
-                string ftpFullPath = $"{ftpServer}/updownstate.xml"; // Pfad auf dem FTP-Server
+                string ftpFullPath = $"{ftpServer}/" + txtSettingsFile.Text; // Pfad auf dem FTP-Server
                 FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ftpFullPath);
                 request.Method = WebRequestMethods.Ftp.UploadFile;
                 request.Credentials = new NetworkCredential(ftpUser, ftpPass);
@@ -303,26 +320,32 @@ namespace V1
         {
 
             // 0. Vergleich der Datumswerte
-            DateTime lastUpdateDate = DateTime.Parse(txtLastUPdate.Text);
-            DateTime lastDownloadDate = DateTime.Parse(txtLastDOWNdate.Text);
-
-            if (lastDownloadDate > lastUpdateDate)
+            try
             {
-                // Warnung, wenn das letzte Download-Datum jünger ist als das Upload-Datum
-                DialogResult result = MessageBox.Show(
-                    "Das letzte Download-Datum ist jünger als das Upload-Datum. Das könnte bedeuten, dass die Datei aktuell von Benutzer "+txtLastDOWNname.Text+" genutzt wird. Möchten Sie trotzdem fortfahren?",
-                    "Warnung",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning
-                );
+                DateTime lastUpdateDate = DateTime.Parse(txtLastUPdate.Text);
+                DateTime lastDownloadDate = DateTime.Parse(txtLastDOWNdate.Text);
+            
 
-                if (result == DialogResult.No)
+                if (lastDownloadDate > lastUpdateDate)
                 {
-                    txtStatus.Text = "Download abgebrochen.";
-                    return;
+                    // Warnung, wenn das letzte Download-Datum jünger ist als das Upload-Datum
+                    DialogResult result = MessageBox.Show(
+                        "Das letzte Download-Datum ist jünger als das Upload-Datum. Das könnte bedeuten, dass die Datei aktuell von Benutzer "+txtLastDOWNname.Text+" genutzt wird. Möchten Sie trotzdem fortfahren?",
+                        "Warnung",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning
+                    );
+
+                    if (result == DialogResult.No)
+                    {
+                        txtStatus.Text = "Download abgebrochen.";
+                        return;
+                    }
                 }
             }
+            catch { }
 
+            
             // 1. Liste der .sav-Dateien auf dem FTP-Server abrufen
             string ftpServer = txtFTP.Text;
             string ftpUser = txtUser.Text;
@@ -354,28 +377,45 @@ namespace V1
                     return;
                 }
 
-                // 2. Benutzer kann eine Datei auswählen
-                string selectedFile = PromptForFileSelection(savFiles); // Methode zum Auswählen der Datei
-                if (string.IsNullOrEmpty(selectedFile))
+                string selectedFile;
+                string localFilePath;
+
+                if (txtPathToSave.Text == "") // Wenn kein Pfad für Savegame gesetzt, wähle eines aus.
                 {
-                    MessageBox.Show("Keine Datei ausgewählt.");
-                    return;
+                    // 2. Benutzer kann eine Datei auswählen
+                    selectedFile = PromptForFileSelection(savFiles); // Methode zum Auswählen der Datei
+                    if (string.IsNullOrEmpty(selectedFile))
+                    {
+                        MessageBox.Show("Keine Datei ausgewählt.");
+                        return;
+                    }
+
+                    // 3. Zielpfad angeben lassen
+                    SaveFileDialog saveFileDialog = new SaveFileDialog
+                    {
+                        FileName = selectedFile,
+                        Filter = "SAV files (*.sav)|*.sav|All files (*.*)|*.*"
+                    };
+
+                    // Verwende eine Umgebungsvariable wie %LOCALAPPDATA%
+                    string localAppDataPath = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%");
+
+                    // Setze den aufgelösten Pfad als InitialDirectory
+                    saveFileDialog.InitialDirectory = localAppDataPath + "\\FactoryGame\\Saved\\SaveGames";
+
+                    if (saveFileDialog.ShowDialog() != DialogResult.OK)
+                    {
+                        MessageBox.Show("Kein Zielpfad angegeben.");
+                        return;
+                    }
+
+                    localFilePath = saveFileDialog.FileName;
                 }
-
-                // 3. Zielpfad angeben lassen
-                SaveFileDialog saveFileDialog = new SaveFileDialog
+                else
                 {
-                    FileName = selectedFile,
-                    Filter = "SAV files (*.sav)|*.sav|All files (*.*)|*.*"
-                };
-
-                if (saveFileDialog.ShowDialog() != DialogResult.OK)
-                {
-                    MessageBox.Show("Kein Zielpfad angegeben.");
-                    return;
+                    selectedFile = txtSettingsFile.Text;
+                    localFilePath = txtPathToSave.Text;
                 }
-
-                string localFilePath = saveFileDialog.FileName;
 
                 // 4. Datei vom FTP-Server herunterladen
                 try
@@ -393,6 +433,27 @@ namespace V1
                     }
 
                     MessageBox.Show("Savegame erfolgreich heruntergeladen.");
+                    txtPathToSave.Text = localFilePath;
+
+                    SSSettings sSSettings = new SSSettings();
+
+
+                    sSSettings.name = txtName.Text;
+                    sSSettings.ftpAddress = txtFTP.Text;
+                    sSSettings.user = txtUser.Text;
+                    sSSettings.pass = txtPass.Text;
+                    sSSettings.file = txtSettingsFile.Text;
+                    sSSettings.pathToSave = txtPathToSave.Text;
+
+                    // Dateipfad zum Speichern der Settings festlegen
+                    string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SatisfactorySyncSettings.json");
+
+                    // Einstellungen in JSON serialisieren und in eine Datei schreiben
+                    string json = System.Text.Json.JsonSerializer.Serialize(sSSettings);
+                    File.WriteAllText(filePath, json);
+
+                    MessageBox.Show("Einstellungen wurden erfolgreich gespeichert.");
+
                 }
                 catch (Exception ex)
                 {
@@ -401,7 +462,7 @@ namespace V1
                 }
 
                 // 5. XML-Datei mit neuen Properties aktualisieren
-                string xmlFilePath = Path.Combine(Path.GetTempPath(), "updownstate.xml");
+                string xmlFilePath = Path.Combine(Path.GetTempPath(), txtSettingsFile.Text);
                 UP_DOWN_State settings;
 
                 if (File.Exists(xmlFilePath))
@@ -430,7 +491,7 @@ namespace V1
                 // 6. Aktualisierte XML-Datei auf den FTP-Server hochladen
                 try
                 {
-                    string ftpXmlPath = $"{ftpServer}/updownstate.xml"; // Pfad auf dem FTP-Server
+                    string ftpXmlPath = $"{ftpServer}/" + txtSettingsFile.Text; // Pfad auf dem FTP-Server
                     FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ftpXmlPath);
                     request.Method = WebRequestMethods.Ftp.UploadFile;
                     request.Credentials = new NetworkCredential(ftpUser, ftpPass);
@@ -544,7 +605,6 @@ namespace V1
                         user = txtUser.Text,
                         pass = txtPass.Text,
                         file = txtSettingsFile.Text,
-                        pathToSave = txtPathToSave.Text
                     };
 
                     // XML-Datei serialisieren
@@ -637,7 +697,6 @@ namespace V1
                     txtUser.Text = settings.user;
                     txtPass.Text = settings.pass;
                     txtSettingsFile.Text = settings.file;
-                    txtPathToSave.Text = settings.pathToSave;
 
                     MessageBox.Show("Settings erfolgreich importiert.");
                 }
