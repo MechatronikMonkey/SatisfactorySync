@@ -44,7 +44,14 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.tabSettings = new System.Windows.Forms.TabPage();
-            this.button4 = new System.Windows.Forms.Button();
+            this.btnImportSettings = new System.Windows.Forms.Button();
+            this.btnExportSettings = new System.Windows.Forms.Button();
+            this.btnListXMLs = new System.Windows.Forms.Button();
+            this.label14 = new System.Windows.Forms.Label();
+            this.label13 = new System.Windows.Forms.Label();
+            this.label12 = new System.Windows.Forms.Label();
+            this.label11 = new System.Windows.Forms.Label();
+            this.btnSelectSave = new System.Windows.Forms.Button();
             this.label10 = new System.Windows.Forms.Label();
             this.txtName = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
@@ -60,13 +67,6 @@
             this.txtFTP = new System.Windows.Forms.TextBox();
             this.txtStatus = new System.Windows.Forms.TextBox();
             this.checkFile = new System.Windows.Forms.Timer(this.components);
-            this.label11 = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
-            this.label14 = new System.Windows.Forms.Label();
-            this.btnListXMLs = new System.Windows.Forms.Button();
-            this.btnExportSettings = new System.Windows.Forms.Button();
-            this.btnImportSettings = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabSync.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -108,7 +108,7 @@
             // 
             // btnDOWNLOAD
             // 
-            this.btnDOWNLOAD.BackgroundImage = global::V1.Properties.Resources.arrowDOWN;
+            this.btnDOWNLOAD.BackgroundImage = global::SatisfactorySyncV0_1.Properties.Resources.arrowDOWN;
             this.btnDOWNLOAD.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.btnDOWNLOAD.Location = new System.Drawing.Point(232, 150);
             this.btnDOWNLOAD.Name = "btnDOWNLOAD";
@@ -119,7 +119,7 @@
             // 
             // btnUPLOAD
             // 
-            this.btnUPLOAD.BackgroundImage = global::V1.Properties.Resources.arrowUP;
+            this.btnUPLOAD.BackgroundImage = global::SatisfactorySyncV0_1.Properties.Resources.arrowUP;
             this.btnUPLOAD.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.btnUPLOAD.Location = new System.Drawing.Point(58, 150);
             this.btnUPLOAD.Name = "btnUPLOAD";
@@ -162,7 +162,7 @@
             // 
             // pictureBox2
             // 
-            this.pictureBox2.Image = global::V1.Properties.Resources.arrowDOWN;
+            this.pictureBox2.Image = global::SatisfactorySyncV0_1.Properties.Resources.arrowDOWN;
             this.pictureBox2.Location = new System.Drawing.Point(38, 91);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(30, 30);
@@ -172,7 +172,7 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = global::V1.Properties.Resources.arrowUP;
+            this.pictureBox1.Image = global::SatisfactorySyncV0_1.Properties.Resources.arrowUP;
             this.pictureBox1.Location = new System.Drawing.Point(38, 32);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(30, 30);
@@ -225,7 +225,7 @@
             this.tabSettings.Controls.Add(this.label13);
             this.tabSettings.Controls.Add(this.label12);
             this.tabSettings.Controls.Add(this.label11);
-            this.tabSettings.Controls.Add(this.button4);
+            this.tabSettings.Controls.Add(this.btnSelectSave);
             this.tabSettings.Controls.Add(this.label10);
             this.tabSettings.Controls.Add(this.txtName);
             this.tabSettings.Controls.Add(this.label9);
@@ -247,15 +247,83 @@
             this.tabSettings.Text = "Settings";
             this.tabSettings.UseVisualStyleBackColor = true;
             // 
-            // button4
+            // btnImportSettings
             // 
-            this.button4.Location = new System.Drawing.Point(360, 188);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(36, 23);
-            this.button4.TabIndex = 13;
-            this.button4.Text = "...";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
+            this.btnImportSettings.Location = new System.Drawing.Point(342, 249);
+            this.btnImportSettings.Name = "btnImportSettings";
+            this.btnImportSettings.Size = new System.Drawing.Size(54, 23);
+            this.btnImportSettings.TabIndex = 20;
+            this.btnImportSettings.Text = "import...";
+            this.btnImportSettings.UseVisualStyleBackColor = true;
+            this.btnImportSettings.Click += new System.EventHandler(this.btnImportSettings_Click);
+            // 
+            // btnExportSettings
+            // 
+            this.btnExportSettings.Location = new System.Drawing.Point(282, 249);
+            this.btnExportSettings.Name = "btnExportSettings";
+            this.btnExportSettings.Size = new System.Drawing.Size(54, 23);
+            this.btnExportSettings.TabIndex = 19;
+            this.btnExportSettings.Text = "export...";
+            this.btnExportSettings.UseVisualStyleBackColor = true;
+            this.btnExportSettings.Click += new System.EventHandler(this.btnExportSettings_Click);
+            // 
+            // btnListXMLs
+            // 
+            this.btnListXMLs.Location = new System.Drawing.Point(256, 145);
+            this.btnListXMLs.Name = "btnListXMLs";
+            this.btnListXMLs.Size = new System.Drawing.Size(24, 23);
+            this.btnListXMLs.TabIndex = 18;
+            this.btnListXMLs.Text = "...";
+            this.btnListXMLs.UseVisualStyleBackColor = true;
+            this.btnListXMLs.Click += new System.EventHandler(this.btnListXMLs_Click);
+            // 
+            // label14
+            // 
+            this.label14.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label14.Location = new System.Drawing.Point(97, 212);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(288, 23);
+            this.label14.TabIndex = 17;
+            this.label14.Text = "Leave empty if joining a game, pick file if starting an upload.\r\nWill be filled a" +
+    "utomatically by downloading a file.";
+            // 
+            // label13
+            // 
+            this.label13.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label13.Location = new System.Drawing.Point(287, 146);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(126, 34);
+            this.label13.TabIndex = 16;
+            this.label13.Text = "Your private settings file.  \r\nE.g. \"NameA_NameB.xml\"";
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label12.Location = new System.Drawing.Point(287, 72);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(95, 12);
+            this.label12.TabIndex = 15;
+            this.label12.Text = "ftp://yourftpadress.de";
+            // 
+            // label11
+            // 
+            this.label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label11.Location = new System.Drawing.Point(287, 24);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(114, 31);
+            this.label11.TabIndex = 14;
+            this.label11.Text = "DONT change after uploading under that name!";
+            // 
+            // btnSelectSave
+            // 
+            this.btnSelectSave.Location = new System.Drawing.Point(360, 188);
+            this.btnSelectSave.Name = "btnSelectSave";
+            this.btnSelectSave.Size = new System.Drawing.Size(36, 23);
+            this.btnSelectSave.TabIndex = 13;
+            this.btnSelectSave.Text = "...";
+            this.btnSelectSave.UseVisualStyleBackColor = true;
+            this.btnSelectSave.Click += new System.EventHandler(this.btnSelectSave_Click);
             // 
             // label10
             // 
@@ -292,9 +360,9 @@
             // btnSave
             // 
             this.btnSave.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSave.Location = new System.Drawing.Point(40, 249);
+            this.btnSave.Location = new System.Drawing.Point(23, 249);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(175, 23);
+            this.btnSave.Size = new System.Drawing.Size(228, 23);
             this.btnSave.TabIndex = 8;
             this.btnSave.Text = "Save";
             this.btnSave.UseVisualStyleBackColor = true;
@@ -308,7 +376,6 @@
             this.label8.Size = new System.Drawing.Size(58, 13);
             this.label8.TabIndex = 7;
             this.label8.Text = "Savegame";
-            this.label8.Click += new System.EventHandler(this.label8_Click);
             // 
             // txtPathToSave
             // 
@@ -379,76 +446,6 @@
             this.checkFile.Interval = 3000;
             this.checkFile.Tick += new System.EventHandler(this.checkFile_Tick);
             // 
-            // label11
-            // 
-            this.label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label11.Location = new System.Drawing.Point(287, 24);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(114, 31);
-            this.label11.TabIndex = 14;
-            this.label11.Text = "DONT change after uploading under that name!";
-            this.label11.Click += new System.EventHandler(this.label11_Click);
-            // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.Location = new System.Drawing.Point(287, 72);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(95, 12);
-            this.label12.TabIndex = 15;
-            this.label12.Text = "ftp://yourftpadress.de";
-            // 
-            // label13
-            // 
-            this.label13.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label13.Location = new System.Drawing.Point(287, 146);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(126, 34);
-            this.label13.TabIndex = 16;
-            this.label13.Text = "Your private settings file.  \r\nE.g. \"NameA_NameB.xml\"";
-            this.label13.Click += new System.EventHandler(this.label13_Click);
-            // 
-            // label14
-            // 
-            this.label14.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label14.Location = new System.Drawing.Point(97, 212);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(288, 23);
-            this.label14.TabIndex = 17;
-            this.label14.Text = "Leave empty if joining a game, pick file if starting an upload.\r\nWill be filled a" +
-    "utomatically by downloading a file.";
-            // 
-            // btnListXMLs
-            // 
-            this.btnListXMLs.Location = new System.Drawing.Point(256, 145);
-            this.btnListXMLs.Name = "btnListXMLs";
-            this.btnListXMLs.Size = new System.Drawing.Size(24, 23);
-            this.btnListXMLs.TabIndex = 18;
-            this.btnListXMLs.Text = "...";
-            this.btnListXMLs.UseVisualStyleBackColor = true;
-            this.btnListXMLs.Click += new System.EventHandler(this.btnListXMLs_Click);
-            // 
-            // btnExportSettings
-            // 
-            this.btnExportSettings.Location = new System.Drawing.Point(282, 249);
-            this.btnExportSettings.Name = "btnExportSettings";
-            this.btnExportSettings.Size = new System.Drawing.Size(54, 23);
-            this.btnExportSettings.TabIndex = 19;
-            this.btnExportSettings.Text = "export...";
-            this.btnExportSettings.UseVisualStyleBackColor = true;
-            this.btnExportSettings.Click += new System.EventHandler(this.btnExportSettings_Click);
-            // 
-            // btnImportSettings
-            // 
-            this.btnImportSettings.Location = new System.Drawing.Point(342, 249);
-            this.btnImportSettings.Name = "btnImportSettings";
-            this.btnImportSettings.Size = new System.Drawing.Size(54, 23);
-            this.btnImportSettings.TabIndex = 20;
-            this.btnImportSettings.Text = "import...";
-            this.btnImportSettings.UseVisualStyleBackColor = true;
-            this.btnImportSettings.Click += new System.EventHandler(this.btnImportSettings_Click);
-            // 
             // SatisfactorySync
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -457,7 +454,7 @@
             this.Controls.Add(this.txtStatus);
             this.Controls.Add(this.tabControl1);
             this.Name = "SatisfactorySync";
-            this.Text = "Satisfactory Sync V1";
+            this.Text = "Satisfactory Sync V0.1";
             this.Load += new System.EventHandler(this.SatisfactorySync_Load);
             this.tabControl1.ResumeLayout(false);
             this.tabSync.ResumeLayout(false);
@@ -501,7 +498,7 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.TextBox txtSettingsFile;
         private System.Windows.Forms.Button btnSave;
-        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button btnSelectSave;
         private System.Windows.Forms.TextBox txtStatus;
         private System.Windows.Forms.Timer checkFile;
         private System.Windows.Forms.Label label11;

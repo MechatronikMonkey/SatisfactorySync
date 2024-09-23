@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
-using V1.Properties;
+using SatisfactorySyncV0_1.Properties;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace V1
@@ -22,7 +22,7 @@ namespace V1
             InitializeComponent();
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void btnSelectSave_Click(object sender, EventArgs e)
         {
             // Erstelle ein OpenFileDialog-Objekt
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -468,21 +468,6 @@ namespace V1
             {
                 txtStatus.Text = "Fehler: " + ex.Message;
             }
-        }
-
-        private void label11_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label8_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label13_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void btnListXMLs_Click(object sender, EventArgs e)
