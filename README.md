@@ -2,6 +2,7 @@
 
 This is the first version of my Satisfactory Savegame Sync Tool.
 
+
 ## Use cases
 If you play satisfactory with lets say 3 people; A, B and C.
 A starts the Server and you all play together. 
@@ -17,6 +18,7 @@ Everyone can get a free FTP server nowadays. You do not need a complicated api k
 Just the FTP login credentials and you are good to go. Share the credentials with your frieds who play.
 And do not hand them to others and you should be save.
 
+
 ## Installation
 Unzip the downloaded Release into any folder you like.
 ![image](https://github.com/user-attachments/assets/6b1aeb6a-da5f-412e-940d-48dd7c6e26b9)
@@ -24,6 +26,7 @@ Unzip the downloaded Release into any folder you like.
 Best would be some space in your user path like C:\Users\yourUserName\SatisfactorySync
 
 Enter folder and Run SatisfactorySyncV0_1.exe
+
 
 ## First Start
 As the software is not signed, windows complains about that.
@@ -45,6 +48,7 @@ This should fail as you have not entered the credentials.
 This is all ok for now.
 Form here there are **two cases**. You may download a game a friends already uploaded or you first upload a game.
 
+
 ## Download existing game ##
 
 ### Import Settings ###
@@ -60,6 +64,7 @@ After you selected the file you are prompted to enter your name. Lets assume we 
 After successfull import of the proper settings you should see "Status update erfolgreich..." on the bottom of the app.
 
 ![image](https://github.com/user-attachments/assets/f0db2fef-b9aa-4509-b3bf-d9782cb95c69)
+
 
 ### Manually insert settings ###
 
@@ -84,6 +89,7 @@ Press **Save**
 
 Go back to Sync Page and
 
+
 ## First dowload of a game ##
 
 If you just entered your settings and want to download a game that has never been downloaded before, you should see something like this:
@@ -106,6 +112,7 @@ Press Save!
 
 You now get **three** messages, one for successfull download, one for successfull update of XML file to the server and one for successfull save all settings.
 
+
 ## Ready Setup looks like this ##
 
 If everything is correct, you see a screen like this
@@ -116,6 +123,19 @@ What you can see here is, that player-A uploaded the game at 05:30:25
 And player-B downloaded it at 06:05:34
 
 So you can assume, that player B is still playing, as he has no re uploaded the savegame.
+
+
+## Normal operation ##
+
+In a normal operation, one player downloads the save game from the server and starts the session.
+After finishing the game, he uploads the file back to the server.
+The final result should look like this
+
+![image](https://github.com/user-attachments/assets/8edd3d2d-5932-46ee-99c7-9c3025a5f475)
+
+Upload Date/Time is LATER than the download Date/Time should be the normal situation.
+Than you know nobody is playing anymore but the game was last finished by player-A at 06:42:42
+
 
 ## Third player interrupts while others are playing ##
 
@@ -138,9 +158,11 @@ Because player C downloaded the game in parallel and may also play on the same s
 
 If you press "Ja" the upload will continue and you are the uploader of the last save now **overwriting** the last upload from player-A
 
+![image](https://github.com/user-attachments/assets/60902ded-2df4-4648-b239-b8d0ba3b6732)
 
+If now another player wants to download, he does not get any error message as player-B upload date is before the date of download of player-A.
 
-
+![image](https://github.com/user-attachments/assets/275d2c1c-0f65-470c-bb83-1162f77a0249)
 
 
 ## Start a new game
