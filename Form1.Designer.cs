@@ -64,6 +64,9 @@
             this.label12 = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
             this.label14 = new System.Windows.Forms.Label();
+            this.btnListXMLs = new System.Windows.Forms.Button();
+            this.btnExportSettings = new System.Windows.Forms.Button();
+            this.btnImportSettings = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabSync.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -215,6 +218,9 @@
             // 
             // tabSettings
             // 
+            this.tabSettings.Controls.Add(this.btnImportSettings);
+            this.tabSettings.Controls.Add(this.btnExportSettings);
+            this.tabSettings.Controls.Add(this.btnListXMLs);
             this.tabSettings.Controls.Add(this.label14);
             this.tabSettings.Controls.Add(this.label13);
             this.tabSettings.Controls.Add(this.label12);
@@ -254,7 +260,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(24, 27);
+            this.label10.Location = new System.Drawing.Point(20, 27);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(58, 13);
             this.label10.TabIndex = 12;
@@ -270,7 +276,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(24, 149);
+            this.label9.Location = new System.Drawing.Point(20, 149);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(61, 13);
             this.label9.TabIndex = 10;
@@ -285,11 +291,12 @@
             // 
             // btnSave
             // 
+            this.btnSave.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnSave.Location = new System.Drawing.Point(40, 249);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(331, 23);
+            this.btnSave.Size = new System.Drawing.Size(175, 23);
             this.btnSave.TabIndex = 8;
-            this.btnSave.Text = "Save and test connection";
+            this.btnSave.Text = "Save";
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
@@ -313,7 +320,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(24, 123);
+            this.label7.Location = new System.Drawing.Point(20, 123);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(30, 13);
             this.label7.TabIndex = 5;
@@ -329,7 +336,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(24, 97);
+            this.label6.Location = new System.Drawing.Point(20, 97);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(29, 13);
             this.label6.TabIndex = 3;
@@ -345,7 +352,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(24, 71);
+            this.label5.Location = new System.Drawing.Point(20, 71);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(59, 13);
             this.label5.TabIndex = 1;
@@ -375,7 +382,7 @@
             // label11
             // 
             this.label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label11.Location = new System.Drawing.Point(273, 22);
+            this.label11.Location = new System.Drawing.Point(287, 24);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(114, 31);
             this.label11.TabIndex = 14;
@@ -386,7 +393,7 @@
             // 
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.Location = new System.Drawing.Point(273, 72);
+            this.label12.Location = new System.Drawing.Point(287, 72);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(95, 12);
             this.label12.TabIndex = 15;
@@ -395,11 +402,12 @@
             // label13
             // 
             this.label13.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label13.Location = new System.Drawing.Point(273, 146);
+            this.label13.Location = new System.Drawing.Point(287, 146);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(126, 34);
             this.label13.TabIndex = 16;
             this.label13.Text = "Your private settings file.  \r\nE.g. \"NameA_NameB.xml\"";
+            this.label13.Click += new System.EventHandler(this.label13_Click);
             // 
             // label14
             // 
@@ -410,6 +418,36 @@
             this.label14.TabIndex = 17;
             this.label14.Text = "Leave empty if joining a game, pick file if starting an upload.\r\nWill be filled a" +
     "utomatically by downloading a file.";
+            // 
+            // btnListXMLs
+            // 
+            this.btnListXMLs.Location = new System.Drawing.Point(256, 145);
+            this.btnListXMLs.Name = "btnListXMLs";
+            this.btnListXMLs.Size = new System.Drawing.Size(24, 23);
+            this.btnListXMLs.TabIndex = 18;
+            this.btnListXMLs.Text = "...";
+            this.btnListXMLs.UseVisualStyleBackColor = true;
+            this.btnListXMLs.Click += new System.EventHandler(this.btnListXMLs_Click);
+            // 
+            // btnExportSettings
+            // 
+            this.btnExportSettings.Location = new System.Drawing.Point(282, 249);
+            this.btnExportSettings.Name = "btnExportSettings";
+            this.btnExportSettings.Size = new System.Drawing.Size(54, 23);
+            this.btnExportSettings.TabIndex = 19;
+            this.btnExportSettings.Text = "export...";
+            this.btnExportSettings.UseVisualStyleBackColor = true;
+            this.btnExportSettings.Click += new System.EventHandler(this.btnExportSettings_Click);
+            // 
+            // btnImportSettings
+            // 
+            this.btnImportSettings.Location = new System.Drawing.Point(342, 249);
+            this.btnImportSettings.Name = "btnImportSettings";
+            this.btnImportSettings.Size = new System.Drawing.Size(54, 23);
+            this.btnImportSettings.TabIndex = 20;
+            this.btnImportSettings.Text = "import...";
+            this.btnImportSettings.UseVisualStyleBackColor = true;
+            this.btnImportSettings.Click += new System.EventHandler(this.btnImportSettings_Click);
             // 
             // SatisfactorySync
             // 
@@ -470,6 +508,9 @@
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.Button btnListXMLs;
+        private System.Windows.Forms.Button btnImportSettings;
+        private System.Windows.Forms.Button btnExportSettings;
     }
 }
 

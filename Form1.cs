@@ -479,6 +479,194 @@ namespace V1
         {
 
         }
+
+        private void label13_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnListXMLs_Click(object sender, EventArgs e)
+        {
+            // 1. Verbindung zum FTP-Server herstellen und XML-Dateien abrufen
+            string ftpServer = txtFTP.Text;
+            string ftpUser = txtUser.Text;
+            string ftpPass = txtPass.Text;
+            List<string> xmlFiles = new List<string>();
+
+            try
+            {
+                FtpWebRequest listRequest = (FtpWebRequest)WebRequest.Create(ftpServer);
+                listRequest.Method = WebRequestMethods.Ftp.ListDirectory;
+                listRequest.Credentials = new NetworkCredential(ftpUser, ftpPass);
+
+                using (FtpWebResponse listResponse = (FtpWebResponse)listRequest.GetResponse())
+                using (StreamReader reader = new StreamReader(listResponse.GetResponseStream()))
+                {
+                    string line = null;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (line.EndsWith(".xml"))
+                        {
+                            xmlFiles.Add(line); // Alle .xml-Dateien sammeln
+                        }
+                    }
+                }
+
+                if (xmlFiles.Count == 0)
+                {
+                    MessageBox.Show("Keine .xml-Dateien auf dem Server gefunden.");
+                    return;
+                }
+
+                // 2. Benutzer kann eine Datei auswählen
+                string selectedFile = PromptForFileSelection(xmlFiles); // Methode zum Auswählen der Datei
+                if (string.IsNullOrEmpty(selectedFile))
+                {
+                    MessageBox.Show("Keine Datei ausgewählt.");
+                    return;
+                }
+
+                // 3. Ausgewählte Datei in ein Textfeld schreiben
+                txtSettingsFile.Text = selectedFile; // Textfeld, um den Dateinamen zu schreiben
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Fehler: " + ex.Message);
+            }
+        }
+
+        private void btnExportSettings_Click(object sender, EventArgs e)
+        {
+            // Erstelle ein neues SaveFileDialog
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                FileName = "SatisfSyncSettings.xml", // Standarddateiname
+                Filter = "XML files (*.xml)|*.xml|All files (*.*)|*.*" // Dateitypenfilter
+            };
+
+            // Zeige den Dialog an und prüfe, ob der Benutzer einen Pfad ausgewählt hat
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string filePath = saveFileDialog.FileName;
+
+                try
+                {
+                    // Exportiere die Settings in die XML-Datei
+                    SSSettings settings = new SSSettings
+                    {
+                        name = txtName.Text,
+                        ftpAddress = txtFTP.Text,
+                        user = txtUser.Text,
+                        pass = txtPass.Text,
+                        file = txtSettingsFile.Text,
+                        pathToSave = txtPathToSave.Text
+                    };
+
+                    // XML-Datei serialisieren
+                    XmlSerializer xmlSerializer = new XmlSerializer(typeof(SSSettings));
+                    using (FileStream fs = new FileStream(filePath, FileMode.Create))
+                    {
+                        xmlSerializer.Serialize(fs, settings);
+                    }
+
+                    // Erfolgsmeldung anzeigen
+                    MessageBox.Show("Settings erfolgreich exportiert.");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Fehler beim Exportieren der Settings: " + ex.Message);
+                }
+            }
+            else
+            {
+                // Benutzer hat den Speichervorgang abgebrochen
+                MessageBox.Show("Speichern abgebrochen.");
+            }
+        }
+
+        // Methode, um eine Eingabemaske für den Namen anzuzeigen
+        private string PromptForNameInput(string defaultName)
+        {
+            using (Form form = new Form())
+            {
+                form.Text = "Name eingeben";
+
+                Label label = new Label { Text = "Name:", Dock = DockStyle.Top };
+                System.Windows.Forms.TextBox textBox = new System.Windows.Forms.TextBox { Text = defaultName, Dock = DockStyle.Top };
+
+                System.Windows.Forms.Button confirmButton = new System.Windows.Forms.Button { Text = "Bestätigen", Dock = DockStyle.Bottom };
+
+                form.Controls.Add(label);
+                form.Controls.Add(textBox);
+                form.Controls.Add(confirmButton);
+                form.StartPosition = FormStartPosition.CenterParent;
+                form.Size = new Size(300, 150);
+
+                string inputName = null;
+                confirmButton.Click += (sender, e) =>
+                {
+                    inputName = textBox.Text;
+                    form.DialogResult = DialogResult.OK;
+                    form.Close();
+                };
+
+                form.ShowDialog();
+                return inputName;
+            }
+        }
+        private void btnImportSettings_Click(object sender, EventArgs e)
+        {
+            // Erstelle ein OpenFileDialog, um eine XML-Datei auszuwählen
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "XML files (*.xml)|*.xml|All files (*.*)|*.*", // Dateitypenfilter
+                Title = "Wählen Sie die Settings-XML-Datei"
+            };
+
+            // Zeige den Dialog an und prüfe, ob der Benutzer eine Datei ausgewählt hat
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string filePath = openFileDialog.FileName;
+
+                try
+                {
+                    // XML-Datei deserialisieren
+                    SSSettings settings;
+                    XmlSerializer xmlSerializer = new XmlSerializer(typeof(SSSettings));
+                    using (FileStream fs = new FileStream(filePath, FileMode.Open))
+                    {
+                        settings = (SSSettings)xmlSerializer.Deserialize(fs);
+                    }
+
+                    // Eingabemaske für den Namen anzeigen, mit dem Namen aus der XML-Datei als Standardwert
+                    string inputName = PromptForNameInput(settings.name);
+                    if (string.IsNullOrEmpty(inputName))
+                    {
+                        MessageBox.Show("Eingabe abgebrochen.");
+                        return;
+                    }
+
+                    // Übernommene Werte in die Textfelder schreiben
+                    txtName.Text = inputName; // Name aus der Eingabemaske
+                    txtFTP.Text = settings.ftpAddress;
+                    txtUser.Text = settings.user;
+                    txtPass.Text = settings.pass;
+                    txtSettingsFile.Text = settings.file;
+                    txtPathToSave.Text = settings.pathToSave;
+
+                    MessageBox.Show("Settings erfolgreich importiert.");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Fehler beim Importieren der Settings: " + ex.Message);
+                }
+            }
+            else
+            {
+                // Benutzer hat den Öffnungsvorgang abgebrochen
+                MessageBox.Show("Öffnen abgebrochen.");
+            }
+        }
     }
 
     public class SSSettings
