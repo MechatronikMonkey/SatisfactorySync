@@ -34,7 +34,7 @@ namespace V1
             openFileDialog.InitialDirectory = localAppDataPath + "\\FactoryGame\\Saved\\SaveGames";
 
             // Optional: Filter setzen, um nur bestimmte Dateitypen anzuzeigen
-            openFileDialog.Filter = "SAV-Dateien (*.sav)|*.sav|Alle Dateien (*.*)|*.*";
+            openFileDialog.Filter = "SAV-Files (*.sav)|*.sav|All Files (*.*)|*.*";
 
             // Überprüfe, ob der Benutzer eine Datei ausgewählt hat
             if (openFileDialog.ShowDialog() == DialogResult.OK)
@@ -66,7 +66,7 @@ namespace V1
             string json = System.Text.Json.JsonSerializer.Serialize(sSSettings);
             File.WriteAllText(filePath, json);
 
-            MessageBox.Show("Einstellungen wurden erfolgreich gespeichert.");
+            MessageBox.Show("Settings successfully saved.");
         }
 
         private void SatisfactorySync_Load(object sender, EventArgs e)
@@ -116,7 +116,7 @@ namespace V1
             {
                 // Warnung, anderer User im Spiel
                 DialogResult result = MessageBox.Show(
-                    "Jemand anderes hat das Spiel nach dir heruntergeladen! Der User " + txtLastDOWNname.Text + " hat das spiel parallel zu dir heruntergeladen. Bist du sicher, dass du das Spiel trotzdem hochladen möchtest?",
+                    "Someone else downloaded the game after you! The User \n" + txtLastDOWNname.Text + "\n has downloaded the game in parallel. Are you sure you still want to upload the game?",
                     "Warnung",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Warning
@@ -124,34 +124,25 @@ namespace V1
 
                 if (result == DialogResult.No)
                 {
-                    txtStatus.Text = "Upload abgebrochen.";
+                    txtStatus.Text = "Upload canceled.";
                     return;
                 }
             }
 
             string xmlFilePath = Path.Combine(Path.GetTempPath(), txtSettingsFile.Text);
             string binaryFilePath = txtPathToSave.Text; // Absoluter Pfad zur bestehenden Binärdatei
-            UP_DOWN_State settings;
 
-            // Prüfen, ob die XML-Datei existiert
-            if (File.Exists(xmlFilePath))
-            {
-                // XML-Datei lesen und bestehende Einstellungen laden
-                XmlSerializer serializer = new XmlSerializer(typeof(UP_DOWN_State));
-                using (FileStream fs = new FileStream(xmlFilePath, FileMode.Open))
-                {
-                    settings = (UP_DOWN_State)serializer.Deserialize(fs);
-                }
-            }
-            else
-            {
-                // Neue Instanz erstellen, wenn die XML-Datei nicht existiert
-                settings = new UP_DOWN_State();
-            }
+  
+            // Neue Instanz erstellen, wenn die XML-Datei nicht existiert
+            UP_DOWN_State settings = new UP_DOWN_State();
+            
 
             // Update der gewünschten Properties
             settings.lastUPName = txtName.Text;
             settings.lastUPDate = DateTime.Now.ToString();
+            settings.lastDOWNDate = txtLastDOWNdate.Text;
+            settings.lastDOWNName = txtLastDOWNname.Text;
+            
 
             // XML-Datei speichern
             XmlSerializer xmlSerializer = new XmlSerializer(typeof(UP_DOWN_State));
@@ -170,7 +161,7 @@ namespace V1
             {
                 if (!File.Exists(binaryFilePath))
                 {
-                    MessageBox.Show("Das Savegame existiert nicht!");
+                    MessageBox.Show("The save game does not exist!");
                     return;
                 }
 
@@ -194,14 +185,14 @@ namespace V1
 
                 using (FtpWebResponse binaryResponse = (FtpWebResponse)binaryRequest.GetResponse())
                 {
-                    MessageBox.Show($"Savegame erfolgreich hochgeladen: {binaryResponse.StatusDescription}");
+                    MessageBox.Show($"Save game successfully uploaded: {binaryResponse.StatusDescription}");
                 }
 
-                txtStatus.Text = "Savegame erfolgreich hochgeladen.";
+                txtStatus.Text = "Save game successfully uploaded.";
             }
             catch (Exception ex)
             {
-                txtStatus.Text = "Fehler beim Hochladen des Savegames: " + ex.Message;
+                txtStatus.Text = "Error uploading the save game:" + ex.Message;
                 return; // Abbrechen, falls der Upload fehlschlägt
             }
 
@@ -229,14 +220,14 @@ namespace V1
 
                 using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
                 {
-                    MessageBox.Show($"XML-Datei erfolgreich hochgeladen: {response.StatusDescription}");
+                    MessageBox.Show($"XML file successfully updated: {response.StatusDescription}");
                 }
 
                 txtStatus.Text = "state update pushed.";
             }
             catch (Exception ex)
             {
-                txtStatus.Text = "Fehler beim Hochladen der XML-Datei: " + ex.Message;
+                txtStatus.Text = "Error uploading the XML file: " + ex.Message;
             }
         }
 
@@ -277,11 +268,11 @@ namespace V1
                     }
                 }
 
-                txtStatus.Text = "Status update erfolgreich...";
+                txtStatus.Text = "Status update successful...";
             }
             catch (Exception ex)
             {
-                txtStatus.Text = "Fehler FTP!" + ex.Message;
+                txtStatus.Text = ex.Message;
             }
         }
 
@@ -300,7 +291,7 @@ namespace V1
                 form.StartPosition = FormStartPosition.CenterParent;
                 form.Size = new Size(300, 200);
 
-                System.Windows.Forms.Button selectButton = new System.Windows.Forms.Button { Text = "Auswählen", Dock = DockStyle.Bottom };
+                System.Windows.Forms.Button selectButton = new System.Windows.Forms.Button { Text = "Pick", Dock = DockStyle.Bottom };
                 form.Controls.Add(selectButton);
 
                 string selectedFile = null;
@@ -330,7 +321,7 @@ namespace V1
                 {
                     // Warnung, wenn das letzte Download-Datum jünger ist als das Upload-Datum
                     DialogResult result = MessageBox.Show(
-                        "Das letzte Download-Datum ist jünger als das Upload-Datum. Das könnte bedeuten, dass die Datei aktuell von Benutzer "+txtLastDOWNname.Text+" genutzt wird. Möchten Sie trotzdem fortfahren?",
+                        "The last download date is more recent than the upload date. This could mean that the file is currently being used by the user \n" + txtLastDOWNname.Text+ "\n. Do you still want to proceed?",
                         "Warnung",
                         MessageBoxButtons.YesNo,
                         MessageBoxIcon.Warning
@@ -338,7 +329,7 @@ namespace V1
 
                     if (result == DialogResult.No)
                     {
-                        txtStatus.Text = "Download abgebrochen.";
+                        txtStatus.Text = "Download canceled.";
                         return;
                     }
                 }
@@ -373,7 +364,7 @@ namespace V1
 
                 if (savFiles.Count == 0)
                 {
-                    MessageBox.Show("Keine .sav-Dateien auf dem Server gefunden.");
+                    MessageBox.Show("No .sav files found on the server.");
                     return;
                 }
 
@@ -386,7 +377,7 @@ namespace V1
                     selectedFile = PromptForFileSelection(savFiles); // Methode zum Auswählen der Datei
                     if (string.IsNullOrEmpty(selectedFile))
                     {
-                        MessageBox.Show("Keine Datei ausgewählt.");
+                        MessageBox.Show("No file selected.");
                         return;
                     }
 
@@ -405,7 +396,7 @@ namespace V1
 
                     if (saveFileDialog.ShowDialog() != DialogResult.OK)
                     {
-                        MessageBox.Show("Kein Zielpfad angegeben.");
+                        MessageBox.Show("No target path specified.");
                         return;
                     }
 
@@ -413,7 +404,7 @@ namespace V1
                 }
                 else
                 {
-                    selectedFile = txtSettingsFile.Text;
+                    selectedFile = Path.GetFileName(txtPathToSave.Text);
                     localFilePath = txtPathToSave.Text;
                 }
 
@@ -432,7 +423,7 @@ namespace V1
                         responseStream.CopyTo(fileStream);
                     }
 
-                    MessageBox.Show("Savegame erfolgreich heruntergeladen.");
+                    MessageBox.Show("Save game successfully downloaded.");
                     txtPathToSave.Text = localFilePath;
 
                     SSSettings sSSettings = new SSSettings();
@@ -452,35 +443,25 @@ namespace V1
                     string json = System.Text.Json.JsonSerializer.Serialize(sSSettings);
                     File.WriteAllText(filePath, json);
 
-                    MessageBox.Show("Einstellungen wurden erfolgreich gespeichert.");
+                    MessageBox.Show("Settings have been successfully saved.");
 
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Fehler beim Herunterladen des Savegames: " + ex.Message);
+                    MessageBox.Show("Error downloading the save game:" + ex.Message);
                     return;
                 }
 
                 // 5. XML-Datei mit neuen Properties aktualisieren
                 string xmlFilePath = Path.Combine(Path.GetTempPath(), txtSettingsFile.Text);
-                UP_DOWN_State settings;
-
-                if (File.Exists(xmlFilePath))
-                {
-                    XmlSerializer serializer = new XmlSerializer(typeof(UP_DOWN_State));
-                    using (FileStream fs = new FileStream(xmlFilePath, FileMode.Open))
-                    {
-                        settings = (UP_DOWN_State)serializer.Deserialize(fs);
-                    }
-                }
-                else
-                {
-                    settings = new UP_DOWN_State();
-                }
+                UP_DOWN_State settings = new UP_DOWN_State();
+                
 
                 // Properties aktualisieren (wie vorher beim Upload)
                 settings.lastDOWNName = txtName.Text;
                 settings.lastDOWNDate = DateTime.Now.ToString();
+                settings.lastUPName = txtLastUPname.Text;
+                settings.lastUPDate = txtLastUPdate.Text;
 
                 XmlSerializer xmlSerializer = new XmlSerializer(typeof(UP_DOWN_State));
                 using (FileStream fs = new FileStream(xmlFilePath, FileMode.Create))
@@ -515,19 +496,19 @@ namespace V1
                     // Antwort vom Server abrufen
                     using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
                     {
-                        MessageBox.Show($"XML-Datei erfolgreich hochgeladen: {response.StatusDescription}");
+                        MessageBox.Show($"XML file successfully updated: {response.StatusDescription}");
                     }
 
-                    txtStatus.Text = "state update pushed.";
+                    txtStatus.Text = "File successfully downloaded.";
                 }
                 catch (Exception ex)
                 {
-                    txtStatus.Text = "Fehler beim Hochladen der XML-Datei: " + ex.Message;
+                    txtStatus.Text = "Error uploading the XML file: " + ex.Message;
                 }
             }
             catch (Exception ex)
             {
-                txtStatus.Text = "Fehler: " + ex.Message;
+                txtStatus.Text = ex.Message;
             }
         }
 
@@ -560,7 +541,7 @@ namespace V1
 
                 if (xmlFiles.Count == 0)
                 {
-                    MessageBox.Show("Keine .xml-Dateien auf dem Server gefunden.");
+                    MessageBox.Show("No .xml files found on the server!");
                     return;
                 }
 
@@ -568,7 +549,7 @@ namespace V1
                 string selectedFile = PromptForFileSelection(xmlFiles); // Methode zum Auswählen der Datei
                 if (string.IsNullOrEmpty(selectedFile))
                 {
-                    MessageBox.Show("Keine Datei ausgewählt.");
+                    MessageBox.Show("No file selected.");
                     return;
                 }
 
@@ -577,7 +558,7 @@ namespace V1
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Fehler: " + ex.Message);
+                MessageBox.Show("Error: " + ex.Message);
             }
         }
 
@@ -615,17 +596,17 @@ namespace V1
                     }
 
                     // Erfolgsmeldung anzeigen
-                    MessageBox.Show("Settings erfolgreich exportiert.");
+                    MessageBox.Show("Settings successfully exported.");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Fehler beim Exportieren der Settings: " + ex.Message);
+                    MessageBox.Show("Error exporting the settings: " + ex.Message);
                 }
             }
             else
             {
                 // Benutzer hat den Speichervorgang abgebrochen
-                MessageBox.Show("Speichern abgebrochen.");
+                MessageBox.Show("Save canceled.");
             }
         }
 
@@ -634,12 +615,12 @@ namespace V1
         {
             using (Form form = new Form())
             {
-                form.Text = "Name eingeben";
+                form.Text = "Enter your name:";
 
                 Label label = new Label { Text = "Name:", Dock = DockStyle.Top };
                 System.Windows.Forms.TextBox textBox = new System.Windows.Forms.TextBox { Text = defaultName, Dock = DockStyle.Top };
 
-                System.Windows.Forms.Button confirmButton = new System.Windows.Forms.Button { Text = "Bestätigen", Dock = DockStyle.Bottom };
+                System.Windows.Forms.Button confirmButton = new System.Windows.Forms.Button { Text = "Confirm", Dock = DockStyle.Bottom };
 
                 form.Controls.Add(label);
                 form.Controls.Add(textBox);
@@ -665,7 +646,7 @@ namespace V1
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Filter = "XML files (*.xml)|*.xml|All files (*.*)|*.*", // Dateitypenfilter
-                Title = "Wählen Sie die Settings-XML-Datei"
+                Title = "Select the settings XML file."
             };
 
             // Zeige den Dialog an und prüfe, ob der Benutzer eine Datei ausgewählt hat
@@ -687,7 +668,7 @@ namespace V1
                     string inputName = PromptForNameInput(settings.name);
                     if (string.IsNullOrEmpty(inputName))
                     {
-                        MessageBox.Show("Eingabe abgebrochen.");
+                        MessageBox.Show("Input canceled.");
                         return;
                     }
 
@@ -698,17 +679,17 @@ namespace V1
                     txtPass.Text = settings.pass;
                     txtSettingsFile.Text = settings.file;
 
-                    MessageBox.Show("Settings erfolgreich importiert.");
+                    MessageBox.Show("Settings successfully imported.");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Fehler beim Importieren der Settings: " + ex.Message);
+                    MessageBox.Show("Error importing the settings: " + ex.Message);
                 }
             }
             else
             {
                 // Benutzer hat den Öffnungsvorgang abgebrochen
-                MessageBox.Show("Öffnen abgebrochen.");
+                MessageBox.Show("Open canceled.");
             }
         }
     }
