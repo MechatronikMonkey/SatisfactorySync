@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
@@ -67,7 +68,7 @@ namespace V1
             string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SatisfactorySyncSettings.json");
 
             // Einstellungen in JSON serialisieren und in eine Datei schreiben
-            string json = System.Text.Json.JsonSerializer.Serialize(sSSettings);
+            string json = SerializeObject(sSSettings);
             File.WriteAllText(filePath, json);
 
             MessageBox.Show("Settings successfully saved.");
@@ -82,7 +83,7 @@ namespace V1
             {
                 // JSON-Inhalt lesen und in ein AppSettings-Objekt deserialisieren
                 string json = File.ReadAllText(filePath);
-                SSSettings settings = System.Text.Json.JsonSerializer.Deserialize<SSSettings>(json);
+                SSSettings settings = DeserializeObject<SSSettings>(json);
 
                 // TextBox-Werte mit den geladenen Properties füllen
                 txtName.Text = settings.name;
@@ -697,7 +698,7 @@ namespace V1
                     string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SatisfactorySyncSettings.json");
 
                     // Einstellungen in JSON serialisieren und in eine Datei schreiben
-                    string json = System.Text.Json.JsonSerializer.Serialize(sSSettings);
+                    string json = SerializeObject(sSSettings);
                     File.WriteAllText(filePath, json);
 
                     MessageBox.Show("Settings have been successfully saved.");
@@ -979,6 +980,81 @@ namespace V1
             }
 
          return -1; // Wenn das Muster nicht gefunden wird
+        }
+
+        public string SerializeObject(object obj)
+        {
+            var jsonProperties = new List<string>();
+
+            // Hole alle Eigenschaften des Objekts
+            var properties = obj.GetType().GetProperties();
+
+            foreach (var prop in properties)
+            {
+                var propName = prop.Name;
+                var propValue = prop.GetValue(obj);
+
+                // Werte für verschiedene Datentypen formatieren
+                if (propValue is string)
+                {
+                    jsonProperties.Add($"\"{propName}\":\"{propValue}\"");
+                }
+                else if (propValue is bool)
+                {
+                    jsonProperties.Add($"\"{propName}\":{propValue.ToString().ToLower()}");
+                }
+                else if (propValue is int || propValue is float || propValue is double || propValue is decimal)
+                {
+                    jsonProperties.Add($"\"{propName}\":{propValue}");
+                }
+                else
+                {
+                    // Falls es sich um ein anderes Objekt handelt, rekursiv serialisieren
+                    jsonProperties.Add($"\"{propName}\":{SerializeObject(propValue)}");
+                }
+            }
+
+            // Füge die Eigenschaften zusammen zu einem JSON-String
+            return "{" + string.Join(",", jsonProperties) + "}";
+        }
+
+        public T DeserializeObject<T>(string json) where T : new()
+        {
+            T obj = new T();
+
+            // Nutze Regex, um JSON-Schlüssel-Werte-Paare korrekt zu parsen
+            var regex = new Regex("\"(.*?)\":\"?(.*?)\"?(,|})");
+            var matches = regex.Matches(json);
+
+            foreach (Match match in matches)
+            {
+                var key = match.Groups[1].Value.Trim();
+                var value = match.Groups[2].Value.Trim();
+
+                // Finde die entsprechende Eigenschaft des Objekts
+                var property = typeof(T).GetProperty(key);
+                if (property != null && property.CanWrite)
+                {
+                    // Konvertiere den Wert in den richtigen Typ
+                    if (property.PropertyType == typeof(int))
+                    {
+                        property.SetValue(obj, int.Parse(value));
+                    }
+                    else if (property.PropertyType == typeof(bool))
+                    {
+                        property.SetValue(obj, bool.Parse(value));
+                    }
+                    else if (property.PropertyType == typeof(string))
+                    {
+                        // Ersetze doppelte Backslashes durch einfache
+                        string correctedValue = value.Replace("\\\\", "\\");
+                        property.SetValue(obj, correctedValue);
+                    }
+                    // Weitere Typen hinzufügen, falls notwendig
+                }
+            }
+
+            return obj;
         }
 
         private void tabSync_Click(object sender, EventArgs e)
