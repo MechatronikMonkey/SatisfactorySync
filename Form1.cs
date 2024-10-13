@@ -239,6 +239,11 @@ namespace V1
             string ftpUser = txtUser.Text; // Ersetze mit deinem Benutzernamen
             string ftpPass = txtPass.Text; // Ersetze mit deinem Passwort
 
+            int startPosition = -1;
+            List<byte> extractedBytes = new List<byte>(); // Vor dem if-Block deklariert
+            byte[] saveGameBytes = null; // Vor dem if-Block deklariert
+            int gameNameByteCount = 0;
+
             string ftpFullPath = $"{ftpServer}/" + txtSettingsFile.Text; // Pfad auf dem FTP-Server
 
             try
@@ -249,6 +254,9 @@ namespace V1
                 FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ftpFullPath);
                 request.Method = WebRequestMethods.Ftp.DownloadFile;
                 request.Credentials = new NetworkCredential(ftpUser, ftpPass);
+
+                // Request only header
+                request.Headers.Add("Range", "bytes=0-4094"); // Range von 0 bis 4094 (4095 Bytes)
 
                 using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
                 using (Stream responseStream = response.GetResponseStream())
@@ -267,10 +275,8 @@ namespace V1
                         txtLastUPdate.Text = settings.lastUPDate;
                         txtLastDOWNname.Text = settings.lastDOWNName;
                         txtLastDOWNdate.Text = settings.lastDOWNDate;
-
                     }
                 }
-
 
                 // SaveGame-Datei herunterladen
                 request = (FtpWebRequest)WebRequest.Create(ftpSaveGamePath);
@@ -282,7 +288,7 @@ namespace V1
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
                     saveGameStream.CopyTo(memoryStream);
-                    byte[] saveGameBytes = memoryStream.ToArray();
+                    saveGameBytes = memoryStream.ToArray(); // Jetzt global verfügbar
 
                     // Nach "SessionDefinition=" suchen
                     string searchWord = "SessionDefinition=";
@@ -292,10 +298,9 @@ namespace V1
                     if (position != -1)
                     {
                         // Startposition nach dem '='-Zeichen
-                        int startPosition = position + searchBytes.Length;
+                        startPosition = position + searchBytes.Length;
 
                         // Bytes extrahieren bis zum ersten 0x00 Byte
-                        List<byte> extractedBytes = new List<byte>();
                         for (int i = startPosition; i < saveGameBytes.Length; i++)
                         {
                             if (saveGameBytes[i] == 0x00)
@@ -306,11 +311,69 @@ namespace V1
                         }
 
                         // Gefundene Bytes in ein Wort umwandeln.
-                        txtServerGameName.Text = System.Text.Encoding.ASCII.GetString(extractedBytes.ToArray());
+                        txtServerSessDefinition.Text = System.Text.Encoding.ASCII.GetString(extractedBytes.ToArray());
                     }
-
                 }
 
+                // Weiter suchen, bis kein 0x00 Byte mehr vorhanden ist
+                int gameNameStartPosition = -1;
+                for (int i = startPosition + extractedBytes.Count; i < saveGameBytes.Length; i++)
+                {
+                    if (saveGameBytes[i] != 0x00)
+                    {
+                        gameNameStartPosition = i;
+                        break; // Die erste Position, bei der das Byte kein 0x00 ist, ist der Anfang des GameNames
+                    }
+                }
+                // Dieses Byte muss übersprungen werden, es ist vermutlich eine Checksumme.
+                // Suche nun weiter bis wieder Text beginnt.
+                for (int i = gameNameStartPosition+1; i < saveGameBytes.Length; i++)
+                {
+                    if (saveGameBytes[i] != 0x00)
+                    {
+                        gameNameStartPosition = i;
+                        break; // Die erste Position, bei der das Byte kein 0x00 ist, ist der Anfang des GameNames
+                    }
+                }
+
+
+                if (gameNameStartPosition != -1)
+                {
+                    // Jetzt den GameName extrahieren, bis wieder ein 0x00 Byte gefunden wird
+                    List<byte> gameNameBytes = new List<byte>();
+                    for (int i = gameNameStartPosition; i < saveGameBytes.Length; i++)
+                    {
+                        if (saveGameBytes[i] == 0x00)
+                        {
+                            break; // Beenden, wenn ein 0x00 Byte gefunden wird (Ende des GameNames)
+                        }
+                        gameNameBytes.Add(saveGameBytes[i]);
+                    }
+
+                    // Gefundene Bytes in einen lesbaren String umwandeln (GameName)
+                    txtServerGameName.Text= System.Text.Encoding.ASCII.GetString(gameNameBytes.ToArray());
+                    gameNameByteCount = gameNameBytes.Count;
+                    
+                }
+
+                // Extrahiere die 4 Bytes nach dem 0x00-Byte (Zeitstempel)
+                int timePosition = gameNameStartPosition + gameNameByteCount + 1; // 1 für das 0x00 Byte
+
+                if (timePosition + 4 <= saveGameBytes.Length)
+                {
+                    byte[] timeBytes = new byte[4];
+                    Array.Copy(saveGameBytes, timePosition, timeBytes, 0, 4);
+
+                    // 32-Bit-Wert in Sekunden umwandeln
+                    int durationInSeconds = BitConverter.ToInt32(timeBytes, 0);
+
+                    // Umwandlung in Stunden, Minuten und Sekunden
+                    TimeSpan duration = TimeSpan.FromSeconds(durationInSeconds);
+                    string formattedDuration = $"{(int)duration.TotalHours:D2}H {duration.Minutes:D2}m {duration.Seconds:D2}s";
+
+                    // Ausgabe der Dauer
+                    txtServerPlaytime.Text = formattedDuration; // Ausgabe als Stunden:Minuten:Sekunden
+                }
 
                 txtStatus.Text = "Status update successful...";
             }
