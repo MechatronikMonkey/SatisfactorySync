@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -76,6 +77,9 @@ namespace V1
 
         private void SatisfactorySync_Load(object sender, EventArgs e)
         {
+
+            txtStatus.Text = "Try to connect...";
+
             // Dateipfad der gespeicherten Settings festlegen
             string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SatisfactorySyncSettings.json");
 
@@ -100,10 +104,28 @@ namespace V1
         {
             bool isfirstsetup = false;
 
+            // 0. Vergleich der Datumswerte
+            try
+            {
+                DateTime lastDownloadDate = DateTime.Parse(txtLastDOWNdate.Text);
+            }
+            catch { }
+
+            try
+            {
+                DateTime lastUpdateDate = DateTime.Parse(txtLastUPdate.Text);
+            }
+            catch
+            {
+                //never uploaded before, looks like we have first setup
+                isfirstsetup = true;
+            }
+
             // Check if the local playtime is at least 1 minute (60 seconds) older than the server playtime
-            if (localDurationInSeconds >= serverDurationInSeconds + 60)
+            if (localDurationInSeconds >= serverDurationInSeconds + 60 || isfirstsetup == true)
             {
                 // looks like the user played a bit and has a newer savegame than server.
+                // or it is the first setup, than we need not show a message.
                 // just continue.
                 
             }
@@ -124,25 +146,6 @@ namespace V1
                 // If the user clicks OK, continue with the operation (add your code here)
             }
             
-
-
-
-            // 0. Vergleich der Datumswerte
-            try
-            {
-                DateTime lastDownloadDate = DateTime.Parse(txtLastDOWNdate.Text);
-            }
-            catch { }
-
-            try
-            {
-                DateTime lastUpdateDate = DateTime.Parse(txtLastUPdate.Text);
-            }
-            catch 
-            {
-                //never uploaded before, looks like we have first setup
-                isfirstsetup = true;
-            }
 
             if (txtName.Text != txtLastDOWNname.Text && isfirstsetup == false)
             {
@@ -171,8 +174,8 @@ namespace V1
 
             // Update der gewünschten Properties
             settings.lastUPName = txtName.Text;
-            settings.lastUPDate = DateTime.Now.ToString();
-            settings.lastDOWNDate = txtLastDOWNdate.Text;
+            settings.lastUPDate = DateTime.Now.ToString("o");
+            settings.lastDOWNDate = DateTime.Parse(txtLastDOWNdate.Text).ToString("o"); ;
             settings.lastDOWNName = txtLastDOWNname.Text;
             
 
@@ -307,14 +310,25 @@ namespace V1
 
                             // Fill text boxes with loaded values
                             txtLastUPname.Text = settings.lastUPName;
-                            txtLastUPdate.Text = settings.lastUPDate;
+                            txtLastUPdate.Text = DateTime.Parse(settings.lastUPDate).ToString();
                             txtLastDOWNname.Text = settings.lastDOWNName;
-                            txtLastDOWNdate.Text = settings.lastDOWNDate;
+                            txtLastDOWNdate.Text = DateTime.Parse(settings.lastDOWNDate).ToString();
                         }
+                    }
+                }
+                catch (FormatException ex)
+                {
+                    if (txtLastUPdate.Text != "")
+                    {
+                        txtStatus.Text = "XML File never downloaded by anybody. Update successful";
                     }
                 }
                 catch (Exception ex)
                 {
+                    txtLastUPname.Text = "";
+                    txtLastUPdate.Text = "";
+                    txtLastDOWNname.Text = "";
+                    txtLastDOWNdate.Text = "";
                     txtStatus.Text = "Error downloading the XML file: " + ex.Message;
                     return; // Early exit
                 }
@@ -566,32 +580,45 @@ namespace V1
 
         private void btnDOWNLOAD_Click(object sender, EventArgs e)
         {
+            DateTime lastUpdateDate;
+            DateTime lastDownloadDate;
 
             // 0. Vergleich der Datumswerte
             try
             {
-                DateTime lastUpdateDate = DateTime.Parse(txtLastUPdate.Text);
-                DateTime lastDownloadDate = DateTime.Parse(txtLastDOWNdate.Text);
+                lastUpdateDate = DateTime.Parse(txtLastUPdate.Text);
+            }
+            catch 
+            { 
+                lastUpdateDate = DateTime.MinValue;
+            }
+                
+            try
+            {
+                lastDownloadDate = DateTime.Parse(txtLastDOWNdate.Text);
+            }
+            catch
+            {
+                lastDownloadDate= DateTime.MinValue;
+            }
             
 
-                if (lastDownloadDate > lastUpdateDate)
-                {
-                    // Warnung, wenn das letzte Download-Datum jünger ist als das Upload-Datum
-                    DialogResult result = MessageBox.Show(
-                        "The last download date is more recent than the upload date. This could mean that the file is currently being used by the user \n" + txtLastDOWNname.Text+ "\n. Do you still want to proceed?",
-                        "DATE MISSMATCH!",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Warning
-                    );
+            if (lastDownloadDate > lastUpdateDate)
+            {
+                // Warnung, wenn das letzte Download-Datum jünger ist als das Upload-Datum
+                DialogResult result = MessageBox.Show(
+                    "The last download date is more recent than the upload date. This could mean that the file is currently being used by the user \n" + txtLastDOWNname.Text+ "\n. Do you still want to proceed?",
+                    "DATE MISSMATCH!",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning
+                );
 
-                    if (result == DialogResult.No)
-                    {
-                        txtStatus.Text = "Download canceled.";
-                        return;
-                    }
+                if (result == DialogResult.No)
+                {
+                    txtStatus.Text = "Download canceled.";
+                    return;
                 }
             }
-            catch { }
 
             
             // 1. Liste der .sav-Dateien auf dem FTP-Server abrufen
@@ -717,9 +744,9 @@ namespace V1
 
                 // Properties aktualisieren (wie vorher beim Upload)
                 settings.lastDOWNName = txtName.Text;
-                settings.lastDOWNDate = DateTime.Now.ToString();
+                settings.lastDOWNDate = DateTime.Now.ToString("o");
                 settings.lastUPName = txtLastUPname.Text;
-                settings.lastUPDate = txtLastUPdate.Text;
+                settings.lastUPDate = DateTime.Parse(txtLastUPdate.Text).ToString("o");
 
                 XmlSerializer xmlSerializer = new XmlSerializer(typeof(UP_DOWN_State));
                 using (FileStream fs = new FileStream(xmlFilePath, FileMode.Create))
@@ -813,6 +840,7 @@ namespace V1
 
                 // 3. Ausgewählte Datei in ein Textfeld schreiben
                 txtSettingsFile.Text = selectedFile; // Textfeld, um den Dateinamen zu schreiben
+                txtPathToSave.Text = ""; // If we picked a new xml file, the savegame should be empty because we pull the first time.
             }
             catch (Exception ex)
             {
