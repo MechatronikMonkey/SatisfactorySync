@@ -656,6 +656,7 @@ namespace V1
                         return;
                     }
 
+                    // Build filepath from path and server-file name. User may not change filename from server!
                     localFilePath = Path.GetDirectoryName (saveFileDialog.FileName) + "\\" + selectedFile;
                 }
                 else
