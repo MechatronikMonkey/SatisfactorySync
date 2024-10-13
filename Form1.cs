@@ -244,32 +244,29 @@ namespace V1
             byte[] saveGameBytes = null; // Vor dem if-Block deklariert
             int gameNameByteCount = 0;
 
-            string ftpFullPath = $"{ftpServer}/" + txtSettingsFile.Text; // Pfad auf dem FTP-Server
+            string ftpFullPath = $"{ftpServer}/{txtSettingsFile.Text}"; // Pfad auf dem FTP-Server
 
             try
             {
                 string txtSavegameFile = Path.GetFileName(txtPathToSave.Text);
-                string ftpSaveGamePath = $"{ftpServer}/" + txtSavegameFile; // Pfad zur SaveGame-Datei
+                string ftpSaveGamePath = $"{ftpServer}/{txtSavegameFile}"; // Pfad zur SaveGame-Datei
 
+                // Anfrage für die Header-Bytes
                 FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ftpFullPath);
                 request.Method = WebRequestMethods.Ftp.DownloadFile;
                 request.Credentials = new NetworkCredential(ftpUser, ftpPass);
-
-                // Request only header
                 request.Headers.Add("Range", "bytes=0-4094"); // Range von 0 bis 4094 (4095 Bytes)
 
+                // XML deserialisieren und Properties laden
                 using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
                 using (Stream responseStream = response.GetResponseStream())
                 using (StreamReader reader = new StreamReader(responseStream))
                 {
                     string xmlContent = reader.ReadToEnd();
-
-                    // XML deserialisieren und Properties laden
                     XmlSerializer serializer = new XmlSerializer(typeof(UP_DOWN_State));
                     using (StringReader stringReader = new StringReader(xmlContent))
                     {
                         UP_DOWN_State settings = (UP_DOWN_State)serializer.Deserialize(stringReader);
-
                         // TextBoxen mit den geladenen Werten füllen
                         txtLastUPname.Text = settings.lastUPName;
                         txtLastUPdate.Text = settings.lastUPDate;
@@ -325,9 +322,10 @@ namespace V1
                         break; // Die erste Position, bei der das Byte kein 0x00 ist, ist der Anfang des GameNames
                     }
                 }
+
                 // Dieses Byte muss übersprungen werden, es ist vermutlich eine Checksumme.
                 // Suche nun weiter bis wieder Text beginnt.
-                for (int i = gameNameStartPosition+1; i < saveGameBytes.Length; i++)
+                for (int i = gameNameStartPosition + 1; i < saveGameBytes.Length; i++)
                 {
                     if (saveGameBytes[i] != 0x00)
                     {
@@ -335,7 +333,6 @@ namespace V1
                         break; // Die erste Position, bei der das Byte kein 0x00 ist, ist der Anfang des GameNames
                     }
                 }
-
 
                 if (gameNameStartPosition != -1)
                 {
@@ -351,9 +348,8 @@ namespace V1
                     }
 
                     // Gefundene Bytes in einen lesbaren String umwandeln (GameName)
-                    txtServerGameName.Text= System.Text.Encoding.ASCII.GetString(gameNameBytes.ToArray());
+                    txtServerGameName.Text = System.Text.Encoding.ASCII.GetString(gameNameBytes.ToArray());
                     gameNameByteCount = gameNameBytes.Count;
-                    
                 }
 
                 // Extrahiere die 4 Bytes nach dem 0x00-Byte (Zeitstempel)
@@ -829,6 +825,49 @@ namespace V1
             }
 
          return -1; // Wenn das Muster nicht gefunden wird
+        }
+
+        void ExtractBytesUntilNull(byte[] sourceBytes, List<byte> targetBytes, int start)
+        {
+            for (int i = start; i < sourceBytes.Length; i++)
+            {
+                if (sourceBytes[i] == 0x00)
+                {
+                    break; // Beenden, wenn das erste 0x00 Byte gefunden wird
+                }
+                targetBytes.Add(sourceBytes[i]);
+            }
+        }
+
+        int FindNextNonNullByte(byte[] bytes, int start)
+        {
+            for (int i = start; i < bytes.Length; i++)
+            {
+                if (bytes[i] != 0x00)
+                {
+                    return i; // Rückgabe der ersten Position, bei der das Byte kein 0x00 ist
+                }
+            }
+            return -1; // Wenn kein non-null Byte gefunden wird
+        }
+
+        void ExtractAndDisplayDuration(byte[] saveGameBytes, int timePosition, System.Windows.Forms.TextBox txtPlaytime)
+        {
+            if (timePosition + 4 <= saveGameBytes.Length)
+            {
+                byte[] timeBytes = new byte[4];
+                Array.Copy(saveGameBytes, timePosition, timeBytes, 0, 4);
+
+                // 32-Bit-Wert in Sekunden umwandeln
+                int durationInSeconds = BitConverter.ToInt32(timeBytes, 0);
+
+                // Umwandlung in Stunden, Minuten und Sekunden
+                TimeSpan duration = TimeSpan.FromSeconds(durationInSeconds);
+                string formattedDuration = $"{(int)duration.TotalHours:D2}H {duration.Minutes:D2}m {duration.Seconds:D2}s";
+
+                // Ausgabe der Dauer
+                txtPlaytime.Text = formattedDuration; // Ausgabe als Stunden:Minuten:Sekunden
+            }
         }
 
         private void tabSync_Click(object sender, EventArgs e)
