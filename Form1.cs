@@ -656,7 +656,7 @@ namespace V1
                         return;
                     }
 
-                    localFilePath = saveFileDialog.FileName;
+                    localFilePath = Path.GetDirectoryName (saveFileDialog.FileName) + "\\" + selectedFile;
                 }
                 else
                 {
