@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
-using SatisfactorySyncV0_1.Properties;
+using SatisfactorySyncV0_2.Properties;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace V1
@@ -243,6 +243,9 @@ namespace V1
 
             try
             {
+                string txtSavegameFile = Path.GetFileName(txtPathToSave.Text);
+                string ftpSaveGamePath = $"{ftpServer}/" + txtSavegameFile; // Pfad zur SaveGame-Datei
+
                 FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ftpFullPath);
                 request.Method = WebRequestMethods.Ftp.DownloadFile;
                 request.Credentials = new NetworkCredential(ftpUser, ftpPass);
@@ -267,6 +270,47 @@ namespace V1
 
                     }
                 }
+
+
+                // SaveGame-Datei herunterladen
+                request = (FtpWebRequest)WebRequest.Create(ftpSaveGamePath);
+                request.Method = WebRequestMethods.Ftp.DownloadFile;
+                request.Credentials = new NetworkCredential(ftpUser, ftpPass);
+
+                using (FtpWebResponse saveGameResponse = (FtpWebResponse)request.GetResponse())
+                using (Stream saveGameStream = saveGameResponse.GetResponseStream())
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    saveGameStream.CopyTo(memoryStream);
+                    byte[] saveGameBytes = memoryStream.ToArray();
+
+                    // Nach "SessionDefinition=" suchen
+                    string searchWord = "SessionDefinition=";
+                    byte[] searchBytes = System.Text.Encoding.ASCII.GetBytes(searchWord);
+                    int position = IndexOfBytes(saveGameBytes, searchBytes);
+
+                    if (position != -1)
+                    {
+                        // Startposition nach dem '='-Zeichen
+                        int startPosition = position + searchBytes.Length;
+
+                        // Bytes extrahieren bis zum ersten 0x00 Byte
+                        List<byte> extractedBytes = new List<byte>();
+                        for (int i = startPosition; i < saveGameBytes.Length; i++)
+                        {
+                            if (saveGameBytes[i] == 0x00)
+                            {
+                                break; // Beenden, wenn das erste 0x00 Byte gefunden wird
+                            }
+                            extractedBytes.Add(saveGameBytes[i]);
+                        }
+
+                        // Gefundene Bytes in ein Wort umwandeln.
+                        txtServerGameName.Text = System.Text.Encoding.ASCII.GetString(extractedBytes.ToArray());
+                    }
+
+                }
+
 
                 txtStatus.Text = "Status update successful...";
             }
@@ -691,6 +735,77 @@ namespace V1
                 // Benutzer hat den Öffnungsvorgang abgebrochen
                 MessageBox.Show("Open canceled.");
             }
+        }
+
+        // Hilfsfunktion, um das Byte-Array zu durchsuchen
+        int IndexOfBytes(byte[] haystack, byte[] needle)
+        {
+            // Randfallbehandlung: Falls das Suchmuster länger als das Byte-Array ist
+            if (needle.Length == 0 || haystack.Length < needle.Length)
+            {
+                return -1;
+            }
+
+            // Schleife durch das Haupt-Array
+            for (int i = 0; i <= haystack.Length - needle.Length; i++)
+            {
+                // Vergleich der Byte-Folge mit dem Suchmuster
+                bool match = true;
+                for (int j = 0; j < needle.Length; j++)
+                {
+                    if (haystack[i + j] != needle[j])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match)
+                {
+                    return i; // Rückgabe des Index des ersten Vorkommens
+                }
+            }
+
+         return -1; // Wenn das Muster nicht gefunden wird
+        }
+
+        private void tabSync_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtLastUPname_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label15_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtLastUPdate_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label19_Click(object sender, EventArgs e)
+        {
+
         }
     }
 

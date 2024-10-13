@@ -67,6 +67,15 @@
             this.txtFTP = new System.Windows.Forms.TextBox();
             this.txtStatus = new System.Windows.Forms.TextBox();
             this.checkFile = new System.Windows.Forms.Timer(this.components);
+            this.txtLocalPlaytime = new System.Windows.Forms.TextBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.txtLocalGameName = new System.Windows.Forms.TextBox();
+            this.label16 = new System.Windows.Forms.Label();
+            this.txtServerPlaytime = new System.Windows.Forms.TextBox();
+            this.txtServerGameName = new System.Windows.Forms.TextBox();
+            this.label17 = new System.Windows.Forms.Label();
+            this.label18 = new System.Windows.Forms.Label();
+            this.label19 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabSync.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -81,11 +90,20 @@
             this.tabControl1.Location = new System.Drawing.Point(12, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(424, 306);
+            this.tabControl1.Size = new System.Drawing.Size(424, 490);
             this.tabControl1.TabIndex = 0;
             // 
             // tabSync
             // 
+            this.tabSync.Controls.Add(this.label19);
+            this.tabSync.Controls.Add(this.txtServerPlaytime);
+            this.tabSync.Controls.Add(this.txtServerGameName);
+            this.tabSync.Controls.Add(this.label17);
+            this.tabSync.Controls.Add(this.label18);
+            this.tabSync.Controls.Add(this.txtLocalGameName);
+            this.tabSync.Controls.Add(this.label16);
+            this.tabSync.Controls.Add(this.txtLocalPlaytime);
+            this.tabSync.Controls.Add(this.label15);
             this.tabSync.Controls.Add(this.btnDOWNLOAD);
             this.tabSync.Controls.Add(this.btnUPLOAD);
             this.tabSync.Controls.Add(this.txtLastDOWNdate);
@@ -101,16 +119,17 @@
             this.tabSync.Location = new System.Drawing.Point(4, 22);
             this.tabSync.Name = "tabSync";
             this.tabSync.Padding = new System.Windows.Forms.Padding(3);
-            this.tabSync.Size = new System.Drawing.Size(416, 280);
+            this.tabSync.Size = new System.Drawing.Size(416, 464);
             this.tabSync.TabIndex = 0;
             this.tabSync.Text = "Sync";
             this.tabSync.UseVisualStyleBackColor = true;
+            this.tabSync.Click += new System.EventHandler(this.tabSync_Click);
             // 
             // btnDOWNLOAD
             // 
-            this.btnDOWNLOAD.BackgroundImage = global::SatisfactorySyncV0_1.Properties.Resources.arrowDOWN;
+            this.btnDOWNLOAD.BackgroundImage = global::SatisfactorySyncV0_2.Properties.Resources.arrowDOWN;
             this.btnDOWNLOAD.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btnDOWNLOAD.Location = new System.Drawing.Point(232, 150);
+            this.btnDOWNLOAD.Location = new System.Drawing.Point(234, 312);
             this.btnDOWNLOAD.Name = "btnDOWNLOAD";
             this.btnDOWNLOAD.Size = new System.Drawing.Size(120, 120);
             this.btnDOWNLOAD.TabIndex = 14;
@@ -119,9 +138,9 @@
             // 
             // btnUPLOAD
             // 
-            this.btnUPLOAD.BackgroundImage = global::SatisfactorySyncV0_1.Properties.Resources.arrowUP;
+            this.btnUPLOAD.BackgroundImage = global::SatisfactorySyncV0_2.Properties.Resources.arrowUP;
             this.btnUPLOAD.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btnUPLOAD.Location = new System.Drawing.Point(58, 150);
+            this.btnUPLOAD.Location = new System.Drawing.Point(52, 312);
             this.btnUPLOAD.Name = "btnUPLOAD";
             this.btnUPLOAD.Size = new System.Drawing.Size(120, 120);
             this.btnUPLOAD.TabIndex = 13;
@@ -131,7 +150,7 @@
             // txtLastDOWNdate
             // 
             this.txtLastDOWNdate.Enabled = false;
-            this.txtLastDOWNdate.Location = new System.Drawing.Point(205, 112);
+            this.txtLastDOWNdate.Location = new System.Drawing.Point(205, 240);
             this.txtLastDOWNdate.Name = "txtLastDOWNdate";
             this.txtLastDOWNdate.Size = new System.Drawing.Size(172, 20);
             this.txtLastDOWNdate.TabIndex = 12;
@@ -139,7 +158,7 @@
             // txtLastDOWNname
             // 
             this.txtLastDOWNname.Enabled = false;
-            this.txtLastDOWNname.Location = new System.Drawing.Point(204, 87);
+            this.txtLastDOWNname.Location = new System.Drawing.Point(204, 215);
             this.txtLastDOWNname.Name = "txtLastDOWNname";
             this.txtLastDOWNname.Size = new System.Drawing.Size(173, 20);
             this.txtLastDOWNname.TabIndex = 11;
@@ -147,35 +166,37 @@
             // txtLastUPdate
             // 
             this.txtLastUPdate.Enabled = false;
-            this.txtLastUPdate.Location = new System.Drawing.Point(204, 50);
+            this.txtLastUPdate.Location = new System.Drawing.Point(204, 93);
             this.txtLastUPdate.Name = "txtLastUPdate";
             this.txtLastUPdate.Size = new System.Drawing.Size(173, 20);
             this.txtLastUPdate.TabIndex = 10;
+            this.txtLastUPdate.TextChanged += new System.EventHandler(this.txtLastUPdate_TextChanged);
             // 
             // txtLastUPname
             // 
             this.txtLastUPname.Enabled = false;
-            this.txtLastUPname.Location = new System.Drawing.Point(204, 25);
+            this.txtLastUPname.Location = new System.Drawing.Point(204, 68);
             this.txtLastUPname.Name = "txtLastUPname";
             this.txtLastUPname.Size = new System.Drawing.Size(173, 20);
             this.txtLastUPname.TabIndex = 9;
+            this.txtLastUPname.TextChanged += new System.EventHandler(this.txtLastUPname_TextChanged);
             // 
             // pictureBox2
             // 
-            this.pictureBox2.Image = global::SatisfactorySyncV0_1.Properties.Resources.arrowDOWN;
-            this.pictureBox2.Location = new System.Drawing.Point(38, 91);
+            this.pictureBox2.Image = global::SatisfactorySyncV0_2.Properties.Resources.arrowDOWN;
+            this.pictureBox2.Location = new System.Drawing.Point(16, 185);
             this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(30, 30);
+            this.pictureBox2.Size = new System.Drawing.Size(49, 46);
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox2.TabIndex = 8;
             this.pictureBox2.TabStop = false;
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = global::SatisfactorySyncV0_1.Properties.Resources.arrowUP;
-            this.pictureBox1.Location = new System.Drawing.Point(38, 32);
+            this.pictureBox1.Image = global::SatisfactorySyncV0_2.Properties.Resources.arrowUP;
+            this.pictureBox1.Location = new System.Drawing.Point(16, 43);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(30, 30);
+            this.pictureBox1.Size = new System.Drawing.Size(49, 46);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 7;
             this.pictureBox1.TabStop = false;
@@ -183,7 +204,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(74, 112);
+            this.label1.Location = new System.Drawing.Point(74, 240);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(124, 13);
             this.label1.TabIndex = 6;
@@ -192,7 +213,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(74, 87);
+            this.label2.Location = new System.Drawing.Point(74, 215);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(123, 13);
             this.label2.TabIndex = 5;
@@ -201,20 +222,22 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(74, 53);
+            this.label3.Location = new System.Drawing.Point(74, 96);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(104, 13);
             this.label3.TabIndex = 4;
             this.label3.Text = "Last UPloaded date:";
+            this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(74, 28);
+            this.label4.Location = new System.Drawing.Point(74, 71);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(103, 13);
             this.label4.TabIndex = 3;
             this.label4.Text = "Last UPloaded from:";
+            this.label4.Click += new System.EventHandler(this.label4_Click);
             // 
             // tabSettings
             // 
@@ -242,7 +265,7 @@
             this.tabSettings.Location = new System.Drawing.Point(4, 22);
             this.tabSettings.Name = "tabSettings";
             this.tabSettings.Padding = new System.Windows.Forms.Padding(3);
-            this.tabSettings.Size = new System.Drawing.Size(416, 280);
+            this.tabSettings.Size = new System.Drawing.Size(416, 349);
             this.tabSettings.TabIndex = 1;
             this.tabSettings.Text = "Settings";
             this.tabSettings.UseVisualStyleBackColor = true;
@@ -435,7 +458,7 @@
             // txtStatus
             // 
             this.txtStatus.Enabled = false;
-            this.txtStatus.Location = new System.Drawing.Point(12, 325);
+            this.txtStatus.Location = new System.Drawing.Point(12, 508);
             this.txtStatus.Name = "txtStatus";
             this.txtStatus.Size = new System.Drawing.Size(420, 20);
             this.txtStatus.TabIndex = 1;
@@ -446,15 +469,95 @@
             this.checkFile.Interval = 3000;
             this.checkFile.Tick += new System.EventHandler(this.checkFile_Tick);
             // 
+            // txtLocalPlaytime
+            // 
+            this.txtLocalPlaytime.Enabled = false;
+            this.txtLocalPlaytime.Location = new System.Drawing.Point(204, 42);
+            this.txtLocalPlaytime.Name = "txtLocalPlaytime";
+            this.txtLocalPlaytime.Size = new System.Drawing.Size(173, 20);
+            this.txtLocalPlaytime.TabIndex = 16;
+            this.txtLocalPlaytime.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(74, 45);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(78, 13);
+            this.label15.TabIndex = 15;
+            this.label15.Text = "Local Playtime:";
+            this.label15.Click += new System.EventHandler(this.label15_Click);
+            // 
+            // txtLocalGameName
+            // 
+            this.txtLocalGameName.Enabled = false;
+            this.txtLocalGameName.Location = new System.Drawing.Point(204, 16);
+            this.txtLocalGameName.Name = "txtLocalGameName";
+            this.txtLocalGameName.Size = new System.Drawing.Size(173, 20);
+            this.txtLocalGameName.TabIndex = 18;
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(74, 19);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(98, 13);
+            this.label16.TabIndex = 17;
+            this.label16.Text = "Local Game Name:";
+            // 
+            // txtServerPlaytime
+            // 
+            this.txtServerPlaytime.Enabled = false;
+            this.txtServerPlaytime.Location = new System.Drawing.Point(205, 189);
+            this.txtServerPlaytime.Name = "txtServerPlaytime";
+            this.txtServerPlaytime.Size = new System.Drawing.Size(172, 20);
+            this.txtServerPlaytime.TabIndex = 22;
+            // 
+            // txtServerGameName
+            // 
+            this.txtServerGameName.Enabled = false;
+            this.txtServerGameName.Location = new System.Drawing.Point(204, 164);
+            this.txtServerGameName.Name = "txtServerGameName";
+            this.txtServerGameName.Size = new System.Drawing.Size(173, 20);
+            this.txtServerGameName.TabIndex = 21;
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(74, 189);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(83, 13);
+            this.label17.TabIndex = 20;
+            this.label17.Text = "Server Playtime:";
+            // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(74, 164);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(103, 13);
+            this.label18.TabIndex = 19;
+            this.label18.Text = "Server Game Name:";
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(10, 129);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(397, 13);
+            this.label19.TabIndex = 23;
+            this.label19.Text = "_________________________________________________________________";
+            this.label19.Click += new System.EventHandler(this.label19_Click);
+            // 
             // SatisfactorySync
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(449, 359);
+            this.ClientSize = new System.Drawing.Size(449, 538);
             this.Controls.Add(this.txtStatus);
             this.Controls.Add(this.tabControl1);
             this.Name = "SatisfactorySync";
-            this.Text = "Satisfactory Sync V0.1";
+            this.Text = "Satisfactory Sync V0.2";
             this.Load += new System.EventHandler(this.SatisfactorySync_Load);
             this.tabControl1.ResumeLayout(false);
             this.tabSync.ResumeLayout(false);
@@ -508,6 +611,15 @@
         private System.Windows.Forms.Button btnListXMLs;
         private System.Windows.Forms.Button btnImportSettings;
         private System.Windows.Forms.Button btnExportSettings;
+        private System.Windows.Forms.TextBox txtLocalPlaytime;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.TextBox txtLocalGameName;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.TextBox txtServerPlaytime;
+        private System.Windows.Forms.TextBox txtServerGameName;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Label label18;
+        private System.Windows.Forms.Label label19;
     }
 }
 
