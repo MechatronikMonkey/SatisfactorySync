@@ -117,7 +117,7 @@ namespace V1
             }
             catch
             {
-                //never uploaded before, looks like we have first setup
+                //no date-time in textfields, looks like we have first setup
                 isfirstsetup = true;
             }
 
@@ -139,7 +139,7 @@ namespace V1
                     MessageBoxIcon.Warning);
 
                 // If the user clicks Cancel, stop the operation
-                if (result == DialogResult.Cancel)
+                if (result != DialogResult.OK)
                 {
                     return; // Abort the operation
                 }
