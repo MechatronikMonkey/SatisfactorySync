@@ -64,6 +64,8 @@ namespace V1
             sSSettings.pass = txtPass.Text;
             sSSettings.file = txtSettingsFile.Text;
             sSSettings.pathToSave = txtPathToSave.Text;
+            sSSettings.pathToBlue = txtBlueprintPath.Text;
+            sSSettings.SyncBlueprints = chkSyncBlueprints.Checked;
 
             // Dateipfad zum Speichern der Settings festlegen
             string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SatisfactorySyncSettings.json");
@@ -96,6 +98,8 @@ namespace V1
                 txtPass.Text = settings.pass;
                 txtSettingsFile.Text = settings.file;
                 txtPathToSave.Text = settings.pathToSave;
+                txtBlueprintPath.Text = settings.pathToBlue;
+                chkSyncBlueprints.Checked = settings.SyncBlueprints;
             }
             catch { }
         }
@@ -151,7 +155,7 @@ namespace V1
             {
                 // Warnung, anderer User im Spiel
                 DialogResult result = MessageBox.Show(
-                    "Someone else downloaded the game after you! The User \n" + txtLastDOWNname.Text + "\n has downloaded the game in parallel. Are you sure you still want to upload the game?",
+                    "Someone else downloaded the game after you! The User \n\n       " + txtLastDOWNname.Text + "\n\n has downloaded the game in parallel. Are you sure you still want to upload the game?",
                     "USER MISSMATCH!",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Warning
@@ -220,7 +224,10 @@ namespace V1
 
                 using (FtpWebResponse binaryResponse = (FtpWebResponse)binaryRequest.GetResponse())
                 {
-                    MessageBox.Show($"Save game successfully uploaded: {binaryResponse.StatusDescription}");
+                    MessageBox.Show($"Save game successfully uploaded: {binaryResponse.StatusDescription}",
+                    "Upload of SAVE GAME successful", // Title of the MessageBox
+                    MessageBoxButtons.OK, // Add OK button
+                    MessageBoxIcon.Information); // Add information icon
                 }
 
                 txtStatus.Text = "Save game successfully uploaded.";
@@ -255,14 +262,132 @@ namespace V1
 
                 using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
                 {
-                    MessageBox.Show($"XML file successfully updated: {response.StatusDescription}");
+                    MessageBox.Show($"Up-/Download times successfully updated: {response.StatusDescription}",
+                    "Status updated.", // Title of the MessageBox
+                    MessageBoxButtons.OK, // Add OK button
+                    MessageBoxIcon.Information); // Add information icon
                 }
 
                 txtStatus.Text = "state update pushed.";
             }
             catch (Exception ex)
             {
-                txtStatus.Text = "Error uploading the XML file: " + ex.Message;
+                txtStatus.Text = "Error uploading the XML status file: " + ex.Message;
+            }
+
+            if (chkSyncBlueprints.Checked)
+            {
+                try
+                {
+                    string localDirectory = Path.GetDirectoryName(txtBlueprintPath.Text); // Local folder with blueprints
+                    string remoteDirectory = $"{ftpServer}/blueprints/" + Path.GetFileName(localDirectory); // FTP folder path
+
+                    // Check if the FTP directory exists
+                    bool directoryExists = true;
+                    try
+                    {
+                        FtpWebRequest dirRequest = (FtpWebRequest)WebRequest.Create(remoteDirectory);
+                        dirRequest.Method = WebRequestMethods.Ftp.ListDirectory;
+                        dirRequest.Credentials = new NetworkCredential(ftpUser, ftpPass);
+                        dirRequest.UsePassive = true;
+
+                        using (FtpWebResponse dirResponse = (FtpWebResponse)dirRequest.GetResponse())
+                        {
+                            directoryExists = true;
+                        }
+                    }
+                    catch (WebException ex)
+                    {
+                        FtpWebResponse response = (FtpWebResponse)ex.Response;
+                        if (response.StatusCode == FtpStatusCode.ActionNotTakenFileUnavailableOrBusy)
+                        {
+                            directoryExists = false; // Directory does not exist
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Error uploading the blueprint files: {ex.Message}",
+                            "Upload Error", // Title of the MessageBox
+                            MessageBoxButtons.OK, // Add OK button
+                            MessageBoxIcon.Error); // Add error icon
+                        }
+                    }
+
+                    // Create the directory if it doesn't exist
+                    if (!directoryExists)
+                    {
+                        FtpWebRequest makeDirRequest = (FtpWebRequest)WebRequest.Create(remoteDirectory);
+                        makeDirRequest.Method = WebRequestMethods.Ftp.MakeDirectory;
+                        makeDirRequest.Credentials = new NetworkCredential(ftpUser, ftpPass);
+                        makeDirRequest.UsePassive = true;
+
+                        using (FtpWebResponse makeDirResponse = (FtpWebResponse)makeDirRequest.GetResponse())
+                        {
+                            // Directory created
+                            MessageBox.Show($"Folder was new to FTP. Sucessfully created on server: {makeDirResponse.StatusDescription}",
+                            "Status folder created.", // Title of the MessageBox
+                            MessageBoxButtons.OK, // Add OK button
+                            MessageBoxIcon.Information); // Add information icon
+                        }
+                    }
+
+                    // Get all blueprint files from the local directory
+                    string[] localFiles = Directory.GetFiles(localDirectory);
+
+                    // List to accumulate successfully uploaded file names
+                    List<string> uploadedFiles = new List<string>();
+
+                    // Upload each file and overwrite if it exists
+                    foreach (string localFilePath in localFiles)
+                    {
+                        string fileName = Path.GetFileName(localFilePath); // Get just the file name
+                        string ftpFilePath = $"{remoteDirectory}/{fileName}"; // Full path on FTP
+
+                        // Upload the file
+                        FtpWebRequest uploadRequest = (FtpWebRequest)WebRequest.Create(ftpFilePath);
+                        uploadRequest.Method = WebRequestMethods.Ftp.UploadFile;
+                        uploadRequest.Credentials = new NetworkCredential(ftpUser, ftpPass);
+                        uploadRequest.UsePassive = true;
+
+                        // Read the file as binary data
+                        byte[] fileData = File.ReadAllBytes(localFilePath);
+
+                        uploadRequest.ContentLength = fileData.Length;
+
+                        using (Stream uploadStream = uploadRequest.GetRequestStream())
+                        {
+                            uploadStream.Write(fileData, 0, fileData.Length);
+                        }
+
+                        using (FtpWebResponse uploadResponse = (FtpWebResponse)uploadRequest.GetResponse())
+                        {
+                            // File uploaded successfully
+                            uploadedFiles.Add(fileName);
+                        }
+                    }
+
+                    // Show final message box with all uploaded files
+                    if (uploadedFiles.Count > 0)
+                    {
+                        string uploadedFilesList = string.Join(Environment.NewLine, uploadedFiles);
+                        MessageBox.Show($"Successfully uploaded files:\n{uploadedFilesList}",
+                                        "Upload Status",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("No files were uploaded.",
+                                        "Upload Status",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Warning);
+                    }
+
+                    txtStatus.Text += " Blueprints synchronized.";
+                }
+                catch (Exception ex)
+                {
+                    txtStatus.Text = "Error synchronizing blueprints: " + ex.Message;
+                }
             }
         }
 
@@ -320,7 +445,7 @@ namespace V1
                 {
                     if (txtLastUPdate.Text != "")
                     {
-                        txtStatus.Text = "XML File never downloaded by anybody. Update successful";
+                        txtStatus.Text = "XML File never downloaded by anybody. Update successful " + ex.Message;
                     }
                 }
                 catch (Exception ex)
@@ -708,7 +833,12 @@ namespace V1
                         responseStream.CopyTo(fileStream);
                     }
 
-                    MessageBox.Show("Save game successfully downloaded.");
+                    MessageBox.Show($"Save game successfully downloaded: {selectedFile}",
+                    "Download of SAVE GAME successful", // Titel der MessageBox
+                    MessageBoxButtons.OK, // OK-Schaltfläche hinzufügen
+                    MessageBoxIcon.Information); // Informationssymbol
+
+
                     txtPathToSave.Text = localFilePath;
 
                     SSSettings sSSettings = new SSSettings();
@@ -720,6 +850,8 @@ namespace V1
                     sSSettings.pass = txtPass.Text;
                     sSSettings.file = txtSettingsFile.Text;
                     sSSettings.pathToSave = txtPathToSave.Text;
+                    sSSettings.SyncBlueprints = chkSyncBlueprints.Checked;
+                    sSSettings.pathToBlue = txtBlueprintPath.Text;
 
                     // Dateipfad zum Speichern der Settings festlegen
                     string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SatisfactorySyncSettings.json");
@@ -727,8 +859,6 @@ namespace V1
                     // Einstellungen in JSON serialisieren und in eine Datei schreiben
                     string json = SerializeObject(sSSettings);
                     File.WriteAllText(filePath, json);
-
-                    MessageBox.Show("Settings have been successfully saved.");
 
                 }
                 catch (Exception ex)
@@ -781,7 +911,10 @@ namespace V1
                     // Antwort vom Server abrufen
                     using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
                     {
-                        MessageBox.Show($"XML file successfully updated: {response.StatusDescription}");
+                        MessageBox.Show($"Up-/Download times successfully updated: {response.StatusDescription}",
+                        "Status updated.", // Title of the MessageBox
+                        MessageBoxButtons.OK, // Add OK button
+                        MessageBoxIcon.Information); // Add information icon
                     }
 
                     txtStatus.Text = "File successfully downloaded.";
@@ -794,6 +927,93 @@ namespace V1
             catch (Exception ex)
             {
                 txtStatus.Text = ex.Message;
+            }
+
+            // If User wants so, download blueprints from server now.
+            if (chkSyncBlueprints.Checked)
+            {
+                try
+                {
+                    string localDirectory = Path.GetDirectoryName(txtBlueprintPath.Text); // Local folder for blueprints
+                    string remoteDirectory = $"{ftpServer}/blueprints/" + Path.GetFileName(localDirectory); // FTP folder path
+
+                    // Get the list of files from the FTP directory
+                    List<string> remoteFiles = new List<string>();
+                    try
+                    {
+                        FtpWebRequest listRequest = (FtpWebRequest)WebRequest.Create(remoteDirectory);
+                        listRequest.Method = WebRequestMethods.Ftp.ListDirectory;
+                        listRequest.Credentials = new NetworkCredential(ftpUser, ftpPass);
+                        listRequest.UsePassive = true;
+
+                        using (FtpWebResponse listResponse = (FtpWebResponse)listRequest.GetResponse())
+                        using (StreamReader reader = new StreamReader(listResponse.GetResponseStream()))
+                        {
+                            while (!reader.EndOfStream)
+                            {
+                                string fileName = reader.ReadLine();
+                                remoteFiles.Add(Path.GetFileName(fileName)); // Add each file name to the list
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error retrieving file list from FTP: {ex.Message}",
+                                        "Download Error",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Error);
+                        return; // Exit if there is an error
+                    }
+
+                    // List to accumulate successfully downloaded file names
+                    List<string> downloadedFiles = new List<string>();
+
+                    // Download each file and overwrite if it exists
+                    foreach (string fileName in remoteFiles)
+                    {
+                        string localFilePath = Path.Combine(localDirectory, fileName); // Local file path
+                        string ftpFilePath = $"{remoteDirectory}/{fileName}"; // Full path on FTP
+
+                        // Download the file
+                        FtpWebRequest downloadRequest = (FtpWebRequest)WebRequest.Create(ftpFilePath);
+                        downloadRequest.Method = WebRequestMethods.Ftp.DownloadFile;
+                        downloadRequest.Credentials = new NetworkCredential(ftpUser, ftpPass);
+                        downloadRequest.UsePassive = true;
+
+                        using (FtpWebResponse downloadResponse = (FtpWebResponse)downloadRequest.GetResponse())
+                        using (Stream responseStream = downloadResponse.GetResponseStream())
+                        using (FileStream fileStream = new FileStream(localFilePath, FileMode.Create)) // Create or overwrite
+                        {
+                            responseStream.CopyTo(fileStream); // Copy data from the response stream to the file
+                        }
+
+                        // File downloaded successfully
+                        downloadedFiles.Add(fileName);
+                    }
+
+                    // Show final message box with all downloaded files
+                    if (downloadedFiles.Count > 0)
+                    {
+                        string downloadedFilesList = string.Join(Environment.NewLine, downloadedFiles);
+                        MessageBox.Show($"Successfully downloaded files:\n{downloadedFilesList}",
+                                        "Download Status",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("No files were downloaded.",
+                                        "Download Status",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Warning);
+                    }
+
+                    txtStatus.Text += " Blueprints synchronized.";
+                }
+                catch (Exception ex)
+                {
+                    txtStatus.Text = "Error synchronizing blueprints: " + ex.Message;
+                }
             }
         }
 
@@ -872,6 +1092,8 @@ namespace V1
                         user = txtUser.Text,
                         pass = txtPass.Text,
                         file = txtSettingsFile.Text,
+                        pathToBlue = txtBlueprintPath.Text,
+                        SyncBlueprints = chkSyncBlueprints.Checked,
                     };
 
                     // XML-Datei serialisieren
@@ -964,6 +1186,8 @@ namespace V1
                     txtUser.Text = settings.user;
                     txtPass.Text = settings.pass;
                     txtSettingsFile.Text = settings.file;
+                    txtBlueprintPath.Text = settings.pathToBlue;
+                    chkSyncBlueprints.Checked = settings.SyncBlueprints;
 
                     MessageBox.Show("Settings successfully imported.");
                 }
@@ -1085,6 +1309,7 @@ namespace V1
             return obj;
         }
 
+
         private void tabSync_Click(object sender, EventArgs e)
         {
 
@@ -1124,6 +1349,36 @@ namespace V1
         {
 
         }
+
+        private void btnSelectBlueprintPath_Click(object sender, EventArgs e)
+        {
+            // Erstelle ein OpenFileDialog-Objekt
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            // Verwende eine Umgebungsvariable wie %LOCALAPPDATA%
+            string localAppDataPath = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%");
+
+            // Setze den aufgelösten Pfad als InitialDirectory
+            openFileDialog.InitialDirectory = localAppDataPath + "\\FactoryGame\\Saved\\SaveGames\\blueprints";
+
+            // Optional: Filter setzen, um nur bestimmte Dateitypen anzuzeigen
+            openFileDialog.Filter = "SBP-Files (*.sbp)|*.sbp|All Files (*.*)|*.*";
+
+            // Überprüfe, ob der Benutzer eine Datei ausgewählt hat
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                // Hier kannst du den Pfad der ausgewählten Datei abrufen
+                string filePath = openFileDialog.FileName;
+
+                // Beispielsweise: Dateipfad in einem Textfeld anzeigen
+                txtBlueprintPath.Text = Path.GetDirectoryName(filePath) + "\\";
+            }
+        }
+
+        private void tabSettings_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 
     public class SSSettings
@@ -1134,6 +1389,8 @@ namespace V1
         public string pass { get; set; }
         public string file { get; set; }
         public string pathToSave { get; set; }
+        public string pathToBlue { get; set; }
+        public bool SyncBlueprints { get; set; }
 
     }
 

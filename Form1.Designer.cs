@@ -31,6 +31,8 @@
             this.components = new System.ComponentModel.Container();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabSync = new System.Windows.Forms.TabPage();
+            this.txtLocalSessDeffinition = new System.Windows.Forms.TextBox();
+            this.label21 = new System.Windows.Forms.Label();
             this.txtServerSessDefinition = new System.Windows.Forms.TextBox();
             this.label20 = new System.Windows.Forms.Label();
             this.label19 = new System.Windows.Forms.Label();
@@ -78,8 +80,11 @@
             this.txtFTP = new System.Windows.Forms.TextBox();
             this.txtStatus = new System.Windows.Forms.TextBox();
             this.checkFile = new System.Windows.Forms.Timer(this.components);
-            this.txtLocalSessDeffinition = new System.Windows.Forms.TextBox();
-            this.label21 = new System.Windows.Forms.Label();
+            this.btnSelectBlueprintPath = new System.Windows.Forms.Button();
+            this.label22 = new System.Windows.Forms.Label();
+            this.txtBlueprintPath = new System.Windows.Forms.TextBox();
+            this.chkSyncBlueprints = new System.Windows.Forms.CheckBox();
+            this.label23 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabSync.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -132,6 +137,23 @@
             this.tabSync.Text = "Sync";
             this.tabSync.UseVisualStyleBackColor = true;
             this.tabSync.Click += new System.EventHandler(this.tabSync_Click);
+            // 
+            // txtLocalSessDeffinition
+            // 
+            this.txtLocalSessDeffinition.Enabled = false;
+            this.txtLocalSessDeffinition.Location = new System.Drawing.Point(205, 42);
+            this.txtLocalSessDeffinition.Name = "txtLocalSessDeffinition";
+            this.txtLocalSessDeffinition.Size = new System.Drawing.Size(173, 20);
+            this.txtLocalSessDeffinition.TabIndex = 27;
+            // 
+            // label21
+            // 
+            this.label21.AutoSize = true;
+            this.label21.Location = new System.Drawing.Point(75, 45);
+            this.label21.Name = "label21";
+            this.label21.Size = new System.Drawing.Size(123, 13);
+            this.label21.TabIndex = 26;
+            this.label21.Text = "Local Session Definition:";
             // 
             // txtServerSessDefinition
             // 
@@ -348,6 +370,11 @@
             // 
             // tabSettings
             // 
+            this.tabSettings.Controls.Add(this.label23);
+            this.tabSettings.Controls.Add(this.chkSyncBlueprints);
+            this.tabSettings.Controls.Add(this.btnSelectBlueprintPath);
+            this.tabSettings.Controls.Add(this.label22);
+            this.tabSettings.Controls.Add(this.txtBlueprintPath);
             this.tabSettings.Controls.Add(this.btnImportSettings);
             this.tabSettings.Controls.Add(this.btnExportSettings);
             this.tabSettings.Controls.Add(this.btnListXMLs);
@@ -372,14 +399,15 @@
             this.tabSettings.Location = new System.Drawing.Point(4, 22);
             this.tabSettings.Name = "tabSettings";
             this.tabSettings.Padding = new System.Windows.Forms.Padding(3);
-            this.tabSettings.Size = new System.Drawing.Size(416, 464);
+            this.tabSettings.Size = new System.Drawing.Size(416, 484);
             this.tabSettings.TabIndex = 1;
             this.tabSettings.Text = "Settings";
             this.tabSettings.UseVisualStyleBackColor = true;
+            this.tabSettings.Click += new System.EventHandler(this.tabSettings_Click);
             // 
             // btnImportSettings
             // 
-            this.btnImportSettings.Location = new System.Drawing.Point(342, 249);
+            this.btnImportSettings.Location = new System.Drawing.Point(342, 427);
             this.btnImportSettings.Name = "btnImportSettings";
             this.btnImportSettings.Size = new System.Drawing.Size(54, 23);
             this.btnImportSettings.TabIndex = 20;
@@ -389,7 +417,7 @@
             // 
             // btnExportSettings
             // 
-            this.btnExportSettings.Location = new System.Drawing.Point(282, 249);
+            this.btnExportSettings.Location = new System.Drawing.Point(282, 427);
             this.btnExportSettings.Name = "btnExportSettings";
             this.btnExportSettings.Size = new System.Drawing.Size(54, 23);
             this.btnExportSettings.TabIndex = 19;
@@ -490,7 +518,7 @@
             // btnSave
             // 
             this.btnSave.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSave.Location = new System.Drawing.Point(23, 249);
+            this.btnSave.Location = new System.Drawing.Point(23, 427);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(228, 23);
             this.btnSave.TabIndex = 8;
@@ -576,22 +604,52 @@
             this.checkFile.Interval = 3000;
             this.checkFile.Tick += new System.EventHandler(this.checkFile_Tick);
             // 
-            // txtLocalSessDeffinition
+            // btnSelectBlueprintPath
             // 
-            this.txtLocalSessDeffinition.Enabled = false;
-            this.txtLocalSessDeffinition.Location = new System.Drawing.Point(205, 42);
-            this.txtLocalSessDeffinition.Name = "txtLocalSessDeffinition";
-            this.txtLocalSessDeffinition.Size = new System.Drawing.Size(173, 20);
-            this.txtLocalSessDeffinition.TabIndex = 27;
+            this.btnSelectBlueprintPath.Location = new System.Drawing.Point(360, 265);
+            this.btnSelectBlueprintPath.Name = "btnSelectBlueprintPath";
+            this.btnSelectBlueprintPath.Size = new System.Drawing.Size(36, 23);
+            this.btnSelectBlueprintPath.TabIndex = 23;
+            this.btnSelectBlueprintPath.Text = "...";
+            this.btnSelectBlueprintPath.UseVisualStyleBackColor = true;
+            this.btnSelectBlueprintPath.Click += new System.EventHandler(this.btnSelectBlueprintPath_Click);
             // 
-            // label21
+            // label22
             // 
-            this.label21.AutoSize = true;
-            this.label21.Location = new System.Drawing.Point(75, 45);
-            this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(123, 13);
-            this.label21.TabIndex = 26;
-            this.label21.Text = "Local Session Definition:";
+            this.label22.AutoSize = true;
+            this.label22.Location = new System.Drawing.Point(20, 269);
+            this.label22.Name = "label22";
+            this.label22.Size = new System.Drawing.Size(53, 13);
+            this.label22.TabIndex = 22;
+            this.label22.Text = "Blueprints";
+            // 
+            // txtBlueprintPath
+            // 
+            this.txtBlueprintPath.Location = new System.Drawing.Point(89, 266);
+            this.txtBlueprintPath.Name = "txtBlueprintPath";
+            this.txtBlueprintPath.Size = new System.Drawing.Size(265, 20);
+            this.txtBlueprintPath.TabIndex = 21;
+            // 
+            // chkSyncBlueprints
+            // 
+            this.chkSyncBlueprints.AutoSize = true;
+            this.chkSyncBlueprints.Location = new System.Drawing.Point(99, 341);
+            this.chkSyncBlueprints.Name = "chkSyncBlueprints";
+            this.chkSyncBlueprints.Size = new System.Drawing.Size(283, 17);
+            this.chkSyncBlueprints.TabIndex = 24;
+            this.chkSyncBlueprints.Text = "try to sync Blueprint folder with ftp on PUSH and PULL";
+            this.chkSyncBlueprints.UseVisualStyleBackColor = true;
+            // 
+            // label23
+            // 
+            this.label23.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label23.Location = new System.Drawing.Point(97, 291);
+            this.label23.Name = "label23";
+            this.label23.Size = new System.Drawing.Size(288, 44);
+            this.label23.TabIndex = 25;
+            this.label23.Text = "On PUSH, files on the server are being overwritten without prompt!\r\nOn PULL, loca" +
+    "l files are being overwritten without prompt!\r\nThis is an experimental function!" +
+    " Use with care!";
             // 
             // SatisfactorySync
             // 
@@ -668,6 +726,11 @@
         private System.Windows.Forms.Label label20;
         private System.Windows.Forms.TextBox txtLocalSessDeffinition;
         private System.Windows.Forms.Label label21;
+        private System.Windows.Forms.Button btnSelectBlueprintPath;
+        private System.Windows.Forms.Label label22;
+        private System.Windows.Forms.TextBox txtBlueprintPath;
+        private System.Windows.Forms.CheckBox chkSyncBlueprints;
+        private System.Windows.Forms.Label label23;
     }
 }
 
