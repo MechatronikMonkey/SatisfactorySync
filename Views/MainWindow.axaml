@@ -1,0 +1,127 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SatisfatorySync.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="SatisfatorySync.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="SatisfatorySync"
+		Width="800"
+		Height="600">
+
+	<Design.DataContext>
+		<vm:MainWindowViewModel/>
+	</Design.DataContext>
+
+	<TabControl>
+		<!-- Tab für Sync -->
+		<TabItem Header="Sync">
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="*"/>
+					<!-- Zeile für das DataGrid -->
+				</Grid.RowDefinitions>
+
+				<!-- Oberes Grid für lokale und entfernte Informationen -->
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="*"/>
+					</Grid.ColumnDefinitions>
+
+					<!-- Linke Seite für lokale Datei -->
+					<StackPanel Grid.Column="0" Margin="10">
+						<TextBlock Text="Local Information" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+
+						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+							<TextBlock Text="Local Game Name: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding LocalGameName}" Foreground="#105ce8"/>
+						</StackPanel>
+
+						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+							<TextBlock Text="Local Session Definition: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding LocalSessionDefinition}" Foreground="#105ce8"/>
+						</StackPanel>
+
+						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+							<TextBlock Text="Local Playtime: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding LocalPlaytime}" Foreground="#105ce8"/>
+						</StackPanel>
+
+						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+							<TextBlock Text="Last Push Name: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding LastPushName}" Foreground="#105ce8"/>
+						</StackPanel>
+
+						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+							<TextBlock Text="Last Push Date: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding LastPushDate}" Foreground="#105ce8"/>
+						</StackPanel>
+					</StackPanel>
+
+					<!-- Rechte Seite für Remote-Datei -->
+					<StackPanel Grid.Column="1" Margin="10">
+						<TextBlock Text="Remote Information" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+
+						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+							<TextBlock Text="Remote Game Name: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding RemoteGameName}" Foreground="#13bd13"/>
+						</StackPanel>
+
+						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+							<TextBlock Text="Remote Session Definition: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding RemoteSessionDefinition}" Foreground="#13bd13"/>
+						</StackPanel>
+
+						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+							<TextBlock Text="Remote Playtime: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding RemotePlaytime}" Foreground="#13bd13"/>
+						</StackPanel>
+
+						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+							<TextBlock Text="Last Push Name: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding RemoteLastPushName}" Foreground="#13bd13"/>
+						</StackPanel>
+
+						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+							<TextBlock Text="Last Push Date: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding RemoteLastPushDate}" Foreground="#13bd13"/>
+						</StackPanel>
+					</StackPanel>
+				</Grid>
+
+				<!-- Unteres Grid für die Buttons -->
+				<Grid Grid.Row="1" Margin="10">
+					<StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="10">
+						<StackPanel Margin="10" HorizontalAlignment="Center">
+							<TextBlock Text="PULL" HorizontalAlignment="Center" Foreground="#105ce8" FontWeight="Bold"/>
+							<Button Margin="10" Width="150" Height="120">
+								<Path Data="M0,60 L40,20 L40,40 L90,40 L90,80 L40,80 L40,100 Z" Fill="#105ce8" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" Height="115"/>
+							</Button>
+						</StackPanel>
+						<StackPanel Margin="10" HorizontalAlignment="Center">
+							<TextBlock Text="PUSH" HorizontalAlignment="Center" Foreground="#13bd13" FontWeight="Bold"/>
+							<Button Margin="10" Width="150" Height="120">
+								<Path Data="M120,60 L80,20 L80,40 L30,40 L30,80 L80,80 L80,100 Z" Fill="#13bd13" HorizontalAlignment="Center" VerticalAlignment="Center" Width="140" Height="115"/>
+							</Button>
+						</StackPanel>
+					</StackPanel>
+				</Grid>
+
+				<!-- DataGrid für Log-Einträge -->
+				<StackPanel Grid.Row="2" Margin="10" HorizontalAlignment="Center">
+					<TextBlock Text="Loglist comes here"></TextBlock>
+				</StackPanel>
+			</Grid>
+		</TabItem>
+
+		<!-- Tab für Settings -->
+		<TabItem Header="Settings">
+			<TextBlock Text="Settings will be added here." VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"/>
+		</TabItem>
+	</TabControl>
+</Window>
