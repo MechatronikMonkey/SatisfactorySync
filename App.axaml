@@ -22,5 +22,9 @@
 			<Setter Property="FontSize" Value="12"/>
 		</Style>
 		
-    </Application.Styles>
+		<Style Selector="DataGridRow" x:CompileBindings="True" x:DataType="local:ViewModels.LogEntry">
+			<Setter Property="Background" Value="{Binding RowColor}"/>
+		</Style>
+
+    </Application.Styles>	
 </Application>

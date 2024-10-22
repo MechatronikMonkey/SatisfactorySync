@@ -10,31 +10,31 @@
         Title="SatisfatorySync"
 		Width="800"
 		Height="600">
-	
+
 	<Design.DataContext>
 		<vm:MainWindowViewModel/>
 	</Design.DataContext>
 
 	<TabControl>
-		<!-- Tab für Sync -->
+		<!-- Tab for Sync -->
 		<TabItem Header="Sync">
 			<Grid>
 				<Grid.RowDefinitions>
 					<RowDefinition Height="*"/>
 					<RowDefinition Height="*"/>
 					<RowDefinition Height="*"/>
-					<!-- Zeile für das DataGrid -->
+					<!-- Row for the DataGrid -->
 				</Grid.RowDefinitions>
 
-				<!-- Oberes Grid für lokale und entfernte Informationen -->
+				<!-- Upper Grid for local and remote information -->
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="*"/>
 						<ColumnDefinition Width="*"/>
 					</Grid.ColumnDefinitions>
 
-					<!-- Linke Seite für lokale Datei -->
-					<StackPanel Grid.Column="0" Margin="10">
+					<!-- Left side for local file -->
+					<StackPanel Grid.Column="0" Margin="20">
 						<TextBlock Text="Local Information" FontWeight="Bold" FontSize="20" Margin="0,0,0,10"/>
 
 						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
@@ -63,8 +63,8 @@
 						</StackPanel>
 					</StackPanel>
 
-					<!-- Rechte Seite für Remote-Datei -->
-					<StackPanel Grid.Column="1" Margin="10">
+					<!-- Right side for remote file -->
+					<StackPanel Grid.Column="1" Margin="20">
 						<TextBlock Text="Remote Information" FontWeight="Bold" FontSize="20" Margin="0,0,0,10"/>
 
 						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
@@ -94,25 +94,25 @@
 					</StackPanel>
 				</Grid>
 
-				<!-- Unteres Grid für die Buttons -->
-				<Grid Grid.Row="1" Margin="0">
+				<!-- Lower Grid for the buttons -->
+				<Grid Grid.Row="1" Margin="15">
 					<StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="0">
 						<StackPanel Margin="10" HorizontalAlignment="Center">
-							<TextBlock Text="PULL" HorizontalAlignment="Center" Foreground="#105ce8" FontWeight="Bold"/>
-							<Button Margin="10" Width="150" Height="120">
+							<TextBlock Text="Download" HorizontalAlignment="Center" Foreground="#105ce8" FontWeight="Bold"/>
+							<Button Margin="10" Width="150" Height="120" Name="btnDownload">
 								<Path Data="M0,60 L40,20 L40,40 L90,40 L90,80 L40,80 L40,100 Z" Fill="#105ce8" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" Height="115"/>
 							</Button>
 						</StackPanel>
 						<StackPanel Margin="10" HorizontalAlignment="Center">
-							<TextBlock Text="PUSH" HorizontalAlignment="Center" Foreground="#13bd13" FontWeight="Bold"/>
-							<Button Margin="10" Width="150" Height="120">
+							<TextBlock Text="Upload" HorizontalAlignment="Center" Foreground="#13bd13" FontWeight="Bold"/>
+							<Button Margin="10" Width="150" Height="120" Name="btnUpload">
 								<Path Data="M120,60 L80,20 L80,40 L30,40 L30,80 L80,80 L80,100 Z" Fill="#13bd13" HorizontalAlignment="Center" VerticalAlignment="Center" Width="140" Height="115"/>
 							</Button>
 						</StackPanel>
 					</StackPanel>
 				</Grid>
 
-				<!-- DataGrid für Log-Einträge -->
+				<!-- DataGrid for log entries -->
 				<StackPanel Grid.Row="2" Margin="0" HorizontalAlignment="Center" Width="750">
 					<TextBlock Text="Log:" FontWeight="Bold" FontSize="16" HorizontalAlignment="Left" Margin="0,0,0,5"/>
 					<DataGrid Margin="0" ItemsSource="{Binding LogEntries}"
@@ -128,15 +128,71 @@
 							<DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="150"/>
 							<DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="*" />
 						</DataGrid.Columns>
-						
 					</DataGrid>
 				</StackPanel>
 			</Grid>
 		</TabItem>
 
-		<!-- Tab für Settings -->
+		<!-- Tab for Settings -->
 		<TabItem Header="Settings">
-			<TextBlock Text="Settings will be added here." VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"/>
+			<StackPanel Margin="20,0,0,0">
+
+				<!-- General Section -->
+				<TextBlock Text="General" FontSize="20" FontWeight="Bold" Margin="0,20,0,4"/>
+				<StackPanel Orientation="Vertical" Margin="0,0,0,20">
+					<StackPanel Orientation="Horizontal" Margin="0,5">
+						<TextBlock Text="Your Name:" Width="150" VerticalAlignment="Center"/>
+						<TextBox Name="txtPersonalName" Width="300" Watermark="Your name..."/>
+					</StackPanel>
+				</StackPanel>
+
+				<!-- FTP Credentials Section -->
+				<TextBlock Text="FTP Credentials" FontSize="20" FontWeight="Bold" Margin="0,20,0,4"/>
+				<StackPanel Orientation="Vertical" Margin="0,0,0,20">
+					<StackPanel Orientation="Horizontal" Margin="0,5">
+						<TextBlock Text="FTP address:" Width="150" VerticalAlignment="Center"/>
+						<TextBox Name="txtFTPaddress" Width="300" Watermark="Enter the FTP address..."/>
+					</StackPanel>
+
+					<StackPanel Orientation="Horizontal" Margin="0,5">
+						<TextBlock Text="User:" Width="150" VerticalAlignment="Center"/>
+						<TextBox Name="txtFTPuser" Width="300" Watermark="Enter your username..."/>
+					</StackPanel>
+
+					<StackPanel Orientation="Horizontal" Margin="0,5">
+						<TextBlock Text="Pass:" Width="150" VerticalAlignment="Center"/>
+						<TextBox Name="txtFTPpass" Width="300" PasswordChar="*"/>
+					</StackPanel>
+				</StackPanel>
+
+				<!-- File Paths Section -->
+				<TextBlock Text="File Paths" FontSize="20" FontWeight="Bold" Margin="0,20,0,4"/>
+				<StackPanel Orientation="Vertical" Margin="0,0,0,20">
+					<StackPanel Orientation="Horizontal" Margin="0,5">
+						<TextBlock Text="Save games path:" Width="150" VerticalAlignment="Center"/>
+						<TextBox Name="txtPathSavegame" Width="500" Watermark="Enter the local path..."/>
+						<Button Content="..." Width="50" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
+					</StackPanel>
+
+					<StackPanel Orientation="Horizontal" Margin="0,5">
+						<TextBlock Text="Blueprints path:" Width="150" VerticalAlignment="Center"/>
+						<TextBox Name="txtPathBlueprints" Width="500" Watermark="Enter the remote path..."/>
+						<Button Content="..." Width="50" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
+					</StackPanel>
+
+					<StackPanel Orientation="Horizontal" Margin="0,5">
+						<TextBlock Text="Sync blueprints?:" Width="150" VerticalAlignment="Center"/>
+						<CheckBox Name="chkSyncBlueprints"></CheckBox>
+					</StackPanel>
+					
+					<StackPanel Orientation="Horizontal" Margin="0,15">
+						<Button Content="save settings" Width="150" FontWeight="Bold" Margin="5,0,50,0" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
+						<Button Content="export settings" Width="150" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
+						<Button Content="import settings" Width="150" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
+					</StackPanel>
+				</StackPanel>
+			</StackPanel>
 		</TabItem>
 	</TabControl>
 </Window>
+

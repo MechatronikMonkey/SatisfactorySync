@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Avalonia.Data.Converters;
+using Avalonia.Media;
+using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 
 namespace SatisfatorySync.ViewModels
 {
@@ -23,23 +26,22 @@ namespace SatisfatorySync.ViewModels
         {
             LogEntries = new ObservableCollection<LogEntry>
             {
-                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Completed" },
-                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Completed" },
-                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Completed" },
-                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Completed" },
-                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Completed" },
-                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Completed" },
-                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Completed" }
+                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Completed", RowColor = "#b3ffb8"},
+                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Warning", RowColor = "#fcffb3"},
+                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Failure", RowColor = "#ffb3b3"},
+                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Completed", RowColor = "#b3ffb8" }
             };
         }
 
-        public class LogEntry
-        {
-            public string TimeStamp { get; set; }
-            public string Action { get; set; }
-            public string Result { get; set; }
-        }
-
-#pragma warning restore CA1822 // Mark members as static
     }
+    public class LogEntry
+    {
+        public string TimeStamp { get; set; }
+        public string Action { get; set; }
+        public string Result { get; set; }
+        public string RowColor { get; set; }
+
+    }
+    
+    #pragma warning restore CA1822 // Mark members as static
 }
