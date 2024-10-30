@@ -6,6 +6,7 @@ using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Reactive;
 
 namespace SatisfatorySync.ViewModels
 {
@@ -86,21 +87,30 @@ namespace SatisfatorySync.ViewModels
         public ObservableCollection<LogEntry> LogEntries { get; set; }
 
         private DispatcherTimer _timer;
+        public LocalSettings _localSettings { get; }
+
+        // Reactive Commands
+        public ReactiveCommand<Unit, Unit> btnSaveSettingsCommand { get; }
 
         public MainWindowViewModel() // Constructor
         {
             // For testing add 4 dummy LogEntries - shall be removed later
             LogEntries = new ObservableCollection<LogEntry>
             {
-                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Completed", RowColor = "#b3ffb8"},
-                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Warning", RowColor = "#fcffb3"},
-                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Failure", RowColor = "#ffb3b3"},
-                new LogEntry { TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Action = "Initial Action", Result = "Completed", RowColor = "#b3ffb8" }
+                new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "Initial Action", Result = "Completed", RowColor = "#b3ffb8"},
+                new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "Initial Action", Result = "Warning", RowColor = "#fcffb3"},
+                new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "Initial Action", Result = "Failure", RowColor = "#ffb3b3"},
             };
 
+            //Button Bindings
+            btnSaveSettingsCommand = ReactiveCommand.Create(btnSaveSettings);
+
+            //Initialisations
             initUpdateTimer();
+            _localSettings = new LocalSettings();
         }
 
+        // initialization of the update Timer - add Callback function timer Tick event
         private void initUpdateTimer()
         {
             _timer = new DispatcherTimer
@@ -108,19 +118,22 @@ namespace SatisfatorySync.ViewModels
                 Interval = TimeSpan.FromSeconds(2)
             };
 
-            _timer.Tick += UpdateCallback;
+            _timer.Tick += TimerTickUpdateCallback;
 
             _timer.Start();
         }
 
-        private void UpdateCallback(object sender, EventArgs e)
+        // actual timer tick callback function for updating UI
+        private void TimerTickUpdateCallback(object sender, EventArgs e)
         {
             // This will be called every 2 seconds
 
-            
-            
         }
-
+        
+        private void btnSaveSettings()
+        {
+            LogEntries.Add(new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "settings saved", Result = _localSettings.Name.ToString(), RowColor = "#b3ffb8" });
+        }
     }
     public class LogEntry
     {
@@ -129,6 +142,17 @@ namespace SatisfatorySync.ViewModels
         public string Result { get; set; }
         public string RowColor { get; set; }
 
+    }
+
+    public class LocalSettings
+    {
+        public string Name { get; set; } = string.Empty;
+        public string ftpAddress { get; set; } = string.Empty;
+        public string ftpUser { get; set; } = string.Empty;
+        public string ftpPassword { get; set; } = string.Empty;
+        public string filePath { get; set; } = string.Empty;
+        public string blueprintsPath { get; set; } = string.Empty;
+        public bool syncBlueprints { get; set; } = false;
     }
     
     #pragma warning restore CA1822 // Mark members as static
