@@ -6,13 +6,27 @@ using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using System.Reactive;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
+using System.Collections.Generic;
+
+
+
 
 namespace SatisfatorySync.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
 #pragma warning disable CA1822 // Mark members as static
+        private string ColorRed { get; } = "#ffb3b3";
+        private string ColorYellow { get; } = "#fcffb3";
+        private string ColorGreen { get; } = "#b3ffb8";
 
         private string _localGameName = "Local Game";
         public string LocalGameName
@@ -88,9 +102,10 @@ namespace SatisfatorySync.ViewModels
 
         private DispatcherTimer _timer;
         public LocalSettings _localSettings { get; }
+        List<FilePickerFileType> fileTypeList_XML { get; set; }
 
         // Reactive Commands
-        public ReactiveCommand<Unit, Unit> btnSaveSettingsCommand { get; }
+        public ReactiveCommand<Unit, Unit> ExportSettingsCommand { get; }
 
         public MainWindowViewModel() // Constructor
         {
@@ -103,11 +118,23 @@ namespace SatisfatorySync.ViewModels
             };
 
             //Button Bindings
-            btnSaveSettingsCommand = ReactiveCommand.Create(btnSaveSettings);
+            ExportSettingsCommand = ReactiveCommand.CreateFromTask(exportSettings);
 
             //Initialisations
             initUpdateTimer();
             _localSettings = new LocalSettings();
+
+            //Filetypes
+            // Create a list of FilePickerFileType instances
+            fileTypeList_XML = new List<FilePickerFileType>
+            {
+                new FilePickerFileType("XML files")
+                {
+                Patterns = new List<string> { "*.xml" }.AsReadOnly(),
+                MimeTypes = new List<string> { "application/xml" }.AsReadOnly()
+                }
+                 // Add more FilePickerFileType instances as needed
+            };
         }
 
         // initialization of the update Timer - add Callback function timer Tick event
@@ -129,10 +156,56 @@ namespace SatisfatorySync.ViewModels
             // This will be called every 2 seconds
 
         }
-        
-        private void btnSaveSettings()
+
+        // export settings
+        private async Task exportSettings()
         {
-            LogEntries.Add(new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "settings saved", Result = _localSettings.Name.ToString(), RowColor = "#b3ffb8" });
+            var topLevel = GetMainWindow();
+
+            if (topLevel != null)
+            {
+                // Use the StorageProvider API to show the save dialog
+                var storageProvider = topLevel.StorageProvider;
+
+                try
+                {
+                    var saveFileResult = await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+                    {
+                        Title = "Save settings to file...",
+                        FileTypeChoices = fileTypeList_XML,
+                        SuggestedFileName = "SatfSyncSettings.xml"
+                    });
+
+                    // Check if a file path was selected
+                    if (saveFileResult != null)
+                    {
+                        // Serialize the LocalSettings instance to XML
+                        var serializer = new XmlSerializer(typeof(LocalSettings));
+                        await using var stream = await saveFileResult.OpenWriteAsync();
+                        using (var writer = new StreamWriter(stream))
+                        {
+                            serializer.Serialize(writer, _localSettings);
+                        }
+
+                        // Log successful export
+                        LogEntries.Add(new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "settings export", Result = "successful", RowColor = ColorGreen });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle exceptions, e.g., log the error
+                    LogEntries.Add(new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "settings export", Result = $"failed: {ex.Message}", RowColor = ColorRed });
+                }
+            }
+        }
+
+        private Window GetMainWindow()
+        {
+            if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+            {
+                return lifetime.MainWindow; // Return the main window
+            }
+            return null; // Return null if the application lifetime is not of the expected type
         }
     }
     public class LogEntry
@@ -154,6 +227,6 @@ namespace SatisfatorySync.ViewModels
         public string blueprintsPath { get; set; } = string.Empty;
         public bool syncBlueprints { get; set; } = false;
     }
-    
-    #pragma warning restore CA1822 // Mark members as static
+
+#pragma warning restore CA1822 // Mark members as static
 }

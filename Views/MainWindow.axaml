@@ -142,7 +142,7 @@
 				<StackPanel Orientation="Vertical" Margin="0,0,0,20">
 					<StackPanel Orientation="Horizontal" Margin="0,5">
 						<TextBlock Text="Your Name:" Width="150" VerticalAlignment="Center"/>
-						<TextBox Width="300" Watermark="Your name..." Text="{Binding _localSettings.Name, Mode=OneWay}"/>
+						<TextBox Width="300" Watermark="Your name..." Text="{Binding _localSettings.Name, Mode=TwoWay}"/>
 					</StackPanel>
 				</StackPanel>
 
@@ -151,17 +151,17 @@
 				<StackPanel Orientation="Vertical" Margin="0,0,0,20">
 					<StackPanel Orientation="Horizontal" Margin="0,5">
 						<TextBlock Text="FTP address:" Width="150" VerticalAlignment="Center"/>
-						<TextBox Width="300" Watermark="Enter the FTP address..." Text="{Binding _localSettings.ftpAddress, Mode=OneWay}"/>
+						<TextBox Width="300" Watermark="Enter the FTP address..." Text="{Binding _localSettings.ftpAddress, Mode=TwoWay}"/>
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Margin="0,5">
 						<TextBlock Text="User:" Width="150" VerticalAlignment="Center"/>
-						<TextBox Width="300" Watermark="Enter your username..." Text="{Binding _localSettings.ftpUser, Mode=OneWay}"/>
+						<TextBox Width="300" Watermark="Enter your username..." Text="{Binding _localSettings.ftpUser, Mode=TwoWay}"/>
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Margin="0,5">
 						<TextBlock Text="Pass:" Width="150" VerticalAlignment="Center"/>
-						<TextBox Width="300" PasswordChar="*" Text="{Binding _localSettings.ftpPassword, Mode=OneWay}"/>
+						<TextBox Width="300" PasswordChar="*" Text="{Binding _localSettings.ftpPassword, Mode=TwoWay}"/>
 					</StackPanel>
 				</StackPanel>
 
@@ -170,23 +170,24 @@
 				<StackPanel Orientation="Vertical" Margin="0,0,0,20">
 					<StackPanel Orientation="Horizontal" Margin="0,5">
 						<TextBlock Text="Save games path:" Width="150" VerticalAlignment="Center"/>
-						<TextBox Width="500" Watermark="Enter the local path..." Text="{Binding _localSettings.filePath, Mode=OneWay}"/>
+						<TextBox Width="500" Watermark="Enter the local path..." Text="{Binding _localSettings.filePath, Mode=TwoWay}"/>
 						<Button Content="..." Width="50" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Margin="0,5">
 						<TextBlock Text="Blueprints path:" Width="150" VerticalAlignment="Center"/>
-						<TextBox Width="500" Watermark="Enter the remote path..." Text="{Binding _localSettings.blueprintsPath, Mode=OneWay}"/>
+						<TextBox Width="500" Watermark="Enter the remote path..." Text="{Binding _localSettings.blueprintsPath, Mode=TwoWay}"/>
 						<Button Content="..." Width="50" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Margin="0,5">
 						<TextBlock Text="Sync blueprints?:" Width="150" VerticalAlignment="Center"/>
-						<CheckBox IsChecked="{Binding _localSettings.syncBlueprints, Mode=OneWay}"/>
+						<CheckBox IsChecked="{Binding _localSettings.syncBlueprints, Mode=TwoWay}"/>
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Margin="0,15">
-						<Button Content="export settings" Width="150" Margin="400,0,0,0" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
+						<Button Content="SAVE" FontSize="16" FontWeight="Bold" Width="200" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
+						<Button Content="export settings" Width="150" Margin="200,0,0,0" VerticalAlignment="Center" HorizontalContentAlignment="Center" Command="{Binding ExportSettingsCommand}"/>
 						<Button Content="import settings" Width="150" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
 					</StackPanel>
 				</StackPanel>
