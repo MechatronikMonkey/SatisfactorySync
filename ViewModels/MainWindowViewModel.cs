@@ -15,6 +15,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 
 
@@ -98,27 +99,75 @@ namespace SatisfatorySync.ViewModels
             set => this.RaiseAndSetIfChanged(ref _remoteLastPushDate, value);
         }
 
+        // Local backing fields for settings
+        private string _name = string.Empty;
+        private string _ftpAddress = string.Empty;
+        private string _ftpUser = string.Empty;
+        private string _ftpPassword = string.Empty;
+        private string _filePath = string.Empty;
+        private string _blueprintsPath = string.Empty;
+        private bool _syncBlueprints = false;
+
+        public string MyName
+        {
+            get => _name;
+            set => this.RaiseAndSetIfChanged(ref _name, value);
+        }
+
+        public string FtpAddress
+        {
+            get => _ftpAddress;
+            set => this.RaiseAndSetIfChanged(ref _ftpAddress, value);
+        }
+
+        public string FtpUser
+        {
+            get => _ftpUser;
+            set => this.RaiseAndSetIfChanged(ref _ftpUser, value);
+        }
+
+        public string FtpPassword
+        {
+            get => _ftpPassword;
+            set => this.RaiseAndSetIfChanged(ref _ftpPassword, value);
+        }
+
+        public string FilePath
+        {
+            get => _filePath;
+            set => this.RaiseAndSetIfChanged(ref _filePath, value);
+        }
+
+        public string BlueprintsPath
+        {
+            get => _blueprintsPath;
+            set => this.RaiseAndSetIfChanged(ref _blueprintsPath, value);
+        }
+
+        public bool SyncBlueprints
+        {
+            get => _syncBlueprints;
+            set => this.RaiseAndSetIfChanged(ref _syncBlueprints, value);
+        }
+
         public ObservableCollection<LogEntry> LogEntries { get; set; }
 
         private DispatcherTimer _timer;
-        public LocalSettings _localSettings { get; }
+        private LocalSettings _localSettings;
         List<FilePickerFileType> fileTypeList_XML { get; set; }
 
         // Reactive Commands
         public ReactiveCommand<Unit, Unit> ExportSettingsCommand { get; }
+        public ReactiveCommand<Unit, Unit> ImportSettingsCommand { get; set; }
+        public ReactiveCommand<Unit, Unit> SaveSettingsCommand { get; set; }
 
         public MainWindowViewModel() // Constructor
         {
-            // For testing add 4 dummy LogEntries - shall be removed later
-            LogEntries = new ObservableCollection<LogEntry>
-            {
-                new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "Initial Action", Result = "Completed", RowColor = "#b3ffb8"},
-                new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "Initial Action", Result = "Warning", RowColor = "#fcffb3"},
-                new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "Initial Action", Result = "Failure", RowColor = "#ffb3b3"},
-            };
 
             //Button Bindings
-            ExportSettingsCommand = ReactiveCommand.CreateFromTask(exportSettings);
+            ExportSettingsCommand = ReactiveCommand.CreateFromTask(CMDexportSettings);
+            ImportSettingsCommand = ReactiveCommand.CreateFromTask(CMDimportSettings);
+            SaveSettingsCommand = ReactiveCommand.CreateFromTask(CMDsaveSettings);
 
             //Initialisations
             initUpdateTimer();
@@ -135,6 +184,16 @@ namespace SatisfatorySync.ViewModels
                 }
                  // Add more FilePickerFileType instances as needed
             };
+
+            // Init Log
+            LogEntries = new ObservableCollection<LogEntry>
+            {
+                new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "Application startup...", Result = "Completed", RowColor = ColorGreen},
+            };
+
+            // load settings
+            LoadSettingsOnStartup();
+
         }
 
         // initialization of the update Timer - add Callback function timer Tick event
@@ -158,13 +217,12 @@ namespace SatisfatorySync.ViewModels
         }
 
         // export settings
-        private async Task exportSettings()
+        private async Task CMDexportSettings()
         {
             var topLevel = GetMainWindow();
 
             if (topLevel != null)
             {
-                // Use the StorageProvider API to show the save dialog
                 var storageProvider = topLevel.StorageProvider;
 
                 try
@@ -179,7 +237,11 @@ namespace SatisfatorySync.ViewModels
                     // Check if a file path was selected
                     if (saveFileResult != null)
                     {
-                        // Serialize the LocalSettings instance to XML
+
+                        // copy text fields to _localSettings object
+                        SaveSettings();
+
+                        // Serialize the LocalSettings instance to XML with error handling
                         var serializer = new XmlSerializer(typeof(LocalSettings));
                         await using var stream = await saveFileResult.OpenWriteAsync();
                         using (var writer = new StreamWriter(stream))
@@ -188,15 +250,161 @@ namespace SatisfatorySync.ViewModels
                         }
 
                         // Log successful export
-                        LogEntries.Add(new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "settings export", Result = "successful", RowColor = ColorGreen });
+                        LogMessage("settings export", "successful:" + saveFileResult.Path, ColorGreen);
                     }
                 }
                 catch (Exception ex)
                 {
-                    // Handle exceptions, e.g., log the error
-                    LogEntries.Add(new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "settings export", Result = $"failed: {ex.Message}", RowColor = ColorRed });
+                    // Handle exceptions during the export process
+                    LogMessage("settings export", $"failed: {ex.Message}", ColorRed);
                 }
             }
+        }
+
+        private async Task CMDimportSettings()
+        {
+            var topLevel = GetMainWindow();
+
+            if (topLevel != null)
+            {
+                var storageProvider = topLevel.StorageProvider;
+
+                try
+                {
+                    var openFileResult = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+                    {
+                        Title = "Load settings from file...",
+                        FileTypeFilter = fileTypeList_XML
+                    });
+
+                    if (openFileResult != null && openFileResult.Count > 0)
+                    {
+                        // Deserialize the LocalSettings instance from XML with error handling
+                        var serializer = new XmlSerializer(typeof(LocalSettings));
+                        await using var stream = await openFileResult[0].OpenReadAsync();
+
+                        using (var reader = new StreamReader(stream))
+                        {
+                            _localSettings = (LocalSettings)serializer.Deserialize(reader);
+                        }
+
+                        // Copy Settings from Object to text fields
+                        LoadSettings();
+
+                        // Log successful loaded
+                        LogMessage("settings load", "successful", ColorGreen);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle exceptions during the load process
+                    LogMessage("settings load", $"failed: {ex.Message}", ColorRed);
+                }
+            }
+        }
+
+        private async Task CMDsaveSettings()
+        {
+            // Copy text fields to settings Object
+            SaveSettings();
+
+            // Get the path to the user's application data directory
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var filePath = Path.Combine(appDataPath, "SatSync.conf");
+
+            try
+            {
+                // Create the directory if it doesn't exist
+                var directoryPath = Path.GetDirectoryName(filePath);
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+
+                // Serialize the LocalSettings instance to XML
+                var serializer = new XmlSerializer(typeof(LocalSettings));
+                await using var stream = new FileStream(filePath, FileMode.Create);
+                using (var writer = new StreamWriter(stream))
+                {
+                    serializer.Serialize(writer, _localSettings);
+                }
+
+                // Log successful save
+                LogMessage("settings save", $"successful: {filePath}", ColorGreen);
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions during the save process
+                LogMessage("settings save", $"failed: {ex.Message}", ColorRed);
+            }
+        }
+
+        private void LoadSettingsOnStartup()
+        {
+            // Get the path to the user's application data directory
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var filePath = Path.Combine(appDataPath, "SatSync.conf");
+
+            try
+            {
+                // Check if the file exists
+                if (File.Exists(filePath))
+                {
+                    // Deserialize the LocalSettings instance from XML
+                    var serializer = new XmlSerializer(typeof(LocalSettings));
+                    using (var stream = new FileStream(filePath, FileMode.Open))
+                    {
+                        using (var reader = new StreamReader(stream))
+                        {
+                            _localSettings = (LocalSettings)serializer.Deserialize(reader);
+                        }
+                    }
+
+                    // Load values into local properties
+                    LoadSettings();
+
+                    // Log successful load
+                    LogMessage("settings load", $"successful: {filePath}", ColorGreen);
+                }
+                else
+                {
+                    LogMessage("settings load", $"file does not exist: {filePath}", ColorRed);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions during the load process
+                LogMessage("settings load", $"failed: {ex.Message}", ColorRed);
+            }
+        }
+
+        private void SaveSettings()
+        {
+            // Copy text fields to settings Object
+            _localSettings.Name = MyName;
+            _localSettings.ftpAddress = FtpAddress;
+            _localSettings.ftpUser = FtpUser;
+            _localSettings.ftpPassword = FtpPassword;
+            _localSettings.filePath = FilePath;
+            _localSettings.blueprintsPath = BlueprintsPath;
+            _localSettings.syncBlueprints = SyncBlueprints;
+
+        }
+
+        private void LoadSettings()
+        {
+            MyName = _localSettings.Name;
+            FtpAddress = _localSettings.ftpAddress;
+            FtpUser = _localSettings.ftpUser;
+            FtpPassword = _localSettings.ftpPassword;
+            FilePath = _localSettings.filePath;
+            BlueprintsPath = _localSettings.blueprintsPath;
+            SyncBlueprints = _localSettings.syncBlueprints;
+        }
+
+        private void LogMessage(string action, string result, string rowColor)
+        {
+            LogEntries.Add(new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = action, Result = result, RowColor = rowColor });
         }
 
         private Window GetMainWindow()
