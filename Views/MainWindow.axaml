@@ -124,7 +124,7 @@
 						BorderThickness="1" BorderBrush="Gray"
 						Height="140">
 						<DataGrid.Columns>
-							<DataGridTextColumn Header="Time Stamp"  Binding="{Binding TimeStamp}" Width="150"/>
+							<DataGridTextColumn Header="Time Stamp"  Binding="{Binding FormattedTimeStamp}" Width="150"/>
 							<DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="150"/>
 							<DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="*" />
 						</DataGrid.Columns>

@@ -16,6 +16,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using System.Collections.Generic;
 using System.Xml.Linq;
+using System.Linq;
 
 
 
@@ -172,6 +173,7 @@ namespace SatisfatorySync.ViewModels
             //Initialisations
             initUpdateTimer();
             _localSettings = new LocalSettings();
+            initLog();
 
             //Filetypes
             // Create a list of FilePickerFileType instances
@@ -182,18 +184,10 @@ namespace SatisfatorySync.ViewModels
                 Patterns = new List<string> { "*.xml" }.AsReadOnly(),
                 MimeTypes = new List<string> { "application/xml" }.AsReadOnly()
                 }
-                 // Add more FilePickerFileType instances as needed
-            };
-
-            // Init Log
-            LogEntries = new ObservableCollection<LogEntry>
-            {
-                new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "Application startup...", Result = "Completed", RowColor = ColorGreen},
             };
 
             // load settings
             LoadSettingsOnStartup();
-
         }
 
         // initialization of the update Timer - add Callback function timer Tick event
@@ -250,7 +244,7 @@ namespace SatisfatorySync.ViewModels
                         }
 
                         // Log successful export
-                        LogMessage("settings export", "successful:" + saveFileResult.Path, ColorGreen);
+                        LogMessage("settings export", $"successful: {saveFileResult.Path}", ColorGreen);
                     }
                 }
                 catch (Exception ex)
@@ -292,7 +286,7 @@ namespace SatisfatorySync.ViewModels
                         LoadSettings();
 
                         // Log successful loaded
-                        LogMessage("settings load", "successful", ColorGreen);
+                        LogMessage("settings load", $"successful: {openFileResult[0].Path}", ColorGreen);
                     }
                 }
                 catch (Exception ex)
@@ -401,10 +395,31 @@ namespace SatisfatorySync.ViewModels
             BlueprintsPath = _localSettings.blueprintsPath;
             SyncBlueprints = _localSettings.syncBlueprints;
         }
-
+        private void initLog()
+        {
+            // Init Log
+            LogEntries = new ObservableCollection<LogEntry>
+            {
+                new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = "Application startup...", Result = "Completed", RowColor = ColorGreen},
+            };
+        }
         private void LogMessage(string action, string result, string rowColor)
         {
             LogEntries.Add(new LogEntry { TimeStamp = DateTime.Now.ToString("o"), Action = action, Result = result, RowColor = rowColor });
+            SortLogEntries();
+        }
+
+        private void SortLogEntries()
+        {
+            // Sort LogEntries by TimeStamp in descending order
+            var sorted = LogEntries.OrderByDescending(entry => DateTime.Parse(entry.TimeStamp)).ToList();
+
+            // Clear the current collection and re-add sorted items
+            LogEntries.Clear();
+            foreach (var entry in sorted)
+            {
+                LogEntries.Add(entry);
+            }
         }
 
         private Window GetMainWindow()
@@ -422,7 +437,17 @@ namespace SatisfatorySync.ViewModels
         public string Action { get; set; }
         public string Result { get; set; }
         public string RowColor { get; set; }
+        // Read-only property for displaying the formatted date
+        public string FormattedTimeStamp => FormatDate(TimeStamp);
+        private string FormatDate(string timeStamp)
+        {
+            if (DateTime.TryParse(timeStamp, out DateTime dateTime))
+            {
+                return DateTime.Parse(timeStamp).ToString(); // Should format in local format
+            }
 
+            return timeStamp; // Return original if parsing fails
+        }
     }
 
     public class LocalSettings
