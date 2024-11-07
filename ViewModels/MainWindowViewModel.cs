@@ -19,6 +19,7 @@ using System.Xml.Linq;
 using System.Linq;
 using System.Net;
 using FluentFTP;
+using System.Runtime.InteropServices;
 
 
 
@@ -173,6 +174,7 @@ namespace SatisfatorySync.ViewModels
         public ReactiveCommand<Unit, Unit> ExportSettingsCommand { get; }
         public ReactiveCommand<Unit, Unit> ImportSettingsCommand { get; set; }
         public ReactiveCommand<Unit, Unit> SaveSettingsCommand { get; set; }
+        public ReactiveCommand<Unit, Unit> PickLocalFolderCommand { get; set; }
 
         public MainWindowViewModel() // Constructor
         {
@@ -181,6 +183,7 @@ namespace SatisfatorySync.ViewModels
             ExportSettingsCommand = ReactiveCommand.CreateFromTask(CMDexportSettings);
             ImportSettingsCommand = ReactiveCommand.CreateFromTask(CMDimportSettings);
             SaveSettingsCommand = ReactiveCommand.CreateFromTask(CMDsaveSettings);
+            PickLocalFolderCommand = ReactiveCommand.CreateFromTask(CMDpickLocalFolder);
 
             //Initialisations
             initUpdateTimer();
@@ -357,6 +360,65 @@ namespace SatisfatorySync.ViewModels
             SelectedIndex = 0;
         }
 
+        private async Task CMDpickLocalFolder()
+        {
+            var topLevel = GetMainWindow();
+
+            if (topLevel != null)
+            {
+                var storageProvider = topLevel.StorageProvider;
+
+                try
+                {
+                    IStorageFolder saveGameFolder = null;
+
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        // Use %LOCALAPPDATA% on Windows
+                        string localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                        string saveGamePath = Path.Combine(localAppDataPath, "FactoryGame", "Saved", "SaveGames");
+
+                        saveGameFolder = await storageProvider.TryGetFolderFromPathAsync(saveGamePath);
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
+                        // Use a different path on Linux
+                        string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                        string saveGamePath = Path.Combine(homePath, ".config", "FactoryGame", "Saved", "SaveGames");
+
+                        saveGameFolder = await storageProvider.TryGetFolderFromPathAsync(saveGamePath);
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+                        // Handle macOS... no reference to test... not implemented on osx for now.
+                    }
+
+                    // Open a folder picker dialog
+                    var openFolderResult = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                    {
+                        Title = "Select a Folder",
+                        // Set the default start location to the user's home directory
+                        SuggestedStartLocation = saveGameFolder
+                    });
+
+                    if (openFolderResult != null && openFolderResult.Count > 0)
+                    {
+                        // store selected folder path
+                        FilePath = openFolderResult[0].TryGetLocalPath();
+
+                        LogMessage("folder selection", $"successful: {openFolderResult[0].TryGetLocalPath()}", ColorGreen);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle exceptions during the folder picking process
+                    LogMessage("folder selection", $"failed: {ex.Message}", ColorRed);
+                }
+
+                // Optionally, switch back to a specific tab if needed
+                SelectedIndex = 0;
+            }
+        }
         private void LoadSettingsOnStartup()
         {
             // Get the path to the user's application data directory
