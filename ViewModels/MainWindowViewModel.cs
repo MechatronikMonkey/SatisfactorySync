@@ -414,9 +414,6 @@ namespace SatisfatorySync.ViewModels
                     // Handle exceptions during the folder picking process
                     LogMessage("folder selection", $"failed: {ex.Message}", ColorRed);
                 }
-
-                // Optionally, switch back to a specific tab if needed
-                SelectedIndex = 0;
             }
         }
         private void LoadSettingsOnStartup()

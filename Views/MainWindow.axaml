@@ -124,9 +124,27 @@
 						BorderThickness="1" BorderBrush="Gray"
 						Height="140">
 						<DataGrid.Columns>
-							<DataGridTextColumn Header="Time Stamp"  Binding="{Binding FormattedTimeStamp}" Width="150"/>
-							<DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="150"/>
-							<DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="*" />
+							<DataGridTemplateColumn Header="Time Stamp" Width="150">
+								<DataGridTemplateColumn.CellTemplate>
+									<DataTemplate>
+										<TextBlock Text="{Binding FormattedTimeStamp}" ToolTip.Tip="{Binding Result}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+									</DataTemplate>
+								</DataGridTemplateColumn.CellTemplate>
+							</DataGridTemplateColumn>
+							<DataGridTemplateColumn Header="Action" Width="150">
+								<DataGridTemplateColumn.CellTemplate>
+									<DataTemplate>
+										<TextBlock Text="{Binding Action}" ToolTip.Tip="{Binding Result}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+									</DataTemplate>
+								</DataGridTemplateColumn.CellTemplate>
+							</DataGridTemplateColumn>
+							<DataGridTemplateColumn Header="Result" Width="*">
+								<DataGridTemplateColumn.CellTemplate>
+									<DataTemplate>
+										<TextBlock Text="{Binding Result}" ToolTip.Tip="{Binding Result}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+									</DataTemplate>
+								</DataGridTemplateColumn.CellTemplate>
+							</DataGridTemplateColumn>
 						</DataGrid.Columns>
 					</DataGrid>
 				</StackPanel>
