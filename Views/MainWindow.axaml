@@ -3,13 +3,13 @@
         xmlns:vm="using:SatisfatorySync.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="700"
         x:Class="SatisfatorySync.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="SatisfatorySync"
-		Width="800"
-		Height="600">
+        Width="800"
+        Height="700">
 
 	<Design.DataContext>
 		<vm:MainWindowViewModel/>
@@ -23,7 +23,6 @@
 					<RowDefinition Height="*"/>
 					<RowDefinition Height="*"/>
 					<RowDefinition Height="*"/>
-					<!-- Row for the DataGrid -->
 				</Grid.RowDefinitions>
 
 				<!-- Upper Grid for local and remote information -->
@@ -35,7 +34,9 @@
 
 					<!-- Left side for local file -->
 					<StackPanel Grid.Column="0" Margin="20">
-						<TextBlock Text="Local Information" FontWeight="Bold" FontSize="20" Margin="0,0,0,10"/>
+						<TextBlock Text="Pick Local Save Game" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+						<ComboBox PlaceholderText="Select a file..." Width="200" Margin="20,0,0,0"/>
+						<TextBlock Text="Local Information" FontWeight="Bold" FontSize="20" Margin="0,15,0,10"/>
 
 						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
 							<TextBlock Text="Local Game Name: " FontWeight="Bold" Foreground="Gray"/>
@@ -48,8 +49,8 @@
 						</StackPanel>
 
 						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-							<TextBlock Text="Local Playtime: " FontWeight="Bold" Foreground="Gray"/>
-							<TextBlock Text="{Binding LocalPlaytime}" Foreground="#105ce8"/>
+							<TextBlock Text="Local Playtime: " FontWeight="Bold" Foreground="Gray" VerticalAlignment="Center"/>
+							<TextBlock Text="{Binding LocalPlaytime}" Foreground="#105ce8" FontWeight="Bold" FontSize="18"/>
 						</StackPanel>
 
 						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
@@ -65,7 +66,9 @@
 
 					<!-- Right side for remote file -->
 					<StackPanel Grid.Column="1" Margin="20">
-						<TextBlock Text="Remote Information" FontWeight="Bold" FontSize="20" Margin="0,0,0,10"/>
+						<TextBlock Text="Pick Remote Save Game" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+						<ComboBox PlaceholderText="Select a file..." Width="200" Margin="20,0,0,0"/>
+						<TextBlock Text="Remote Information" FontWeight="Bold" FontSize="20" Margin="0,15,0,10"/>
 
 						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
 							<TextBlock Text="Remote Game Name: " FontWeight="Bold" Foreground="Gray"/>
@@ -78,8 +81,8 @@
 						</StackPanel>
 
 						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-							<TextBlock Text="Remote Playtime: " FontWeight="Bold" Foreground="Gray"/>
-							<TextBlock Text="{Binding RemotePlaytime}" Foreground="#13bd13"/>
+							<TextBlock Text="Remote Playtime: " FontWeight="Bold" Foreground="Gray" VerticalAlignment="Center"/>
+							<TextBlock Text="{Binding RemotePlaytime}" Foreground="#13bd13" FontWeight="Bold" FontSize="18"/>
 						</StackPanel>
 
 						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
@@ -95,7 +98,7 @@
 				</Grid>
 
 				<!-- Lower Grid for the buttons -->
-				<Grid Grid.Row="1" Margin="15">
+				<Grid Grid.Row="1" Margin="0,60,0,0">
 					<StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="0">
 						<StackPanel Margin="10" HorizontalAlignment="Center">
 							<TextBlock Text="Download" HorizontalAlignment="Center" Foreground="#105ce8" FontWeight="Bold"/>
@@ -113,16 +116,16 @@
 				</Grid>
 
 				<!-- DataGrid for log entries -->
-				<StackPanel Grid.Row="2" Margin="0" HorizontalAlignment="Center" Width="750">
+				<StackPanel Grid.Row="2" Margin="0,5,0,0" HorizontalAlignment="Center" Width="750">
 					<TextBlock Text="Log:" FontWeight="Bold" FontSize="16" HorizontalAlignment="Left" Margin="0,0,0,5"/>
 					<DataGrid Margin="0" ItemsSource="{Binding LogEntries}"
-						IsReadOnly="True"
-						CanUserReorderColumns="True"
-						CanUserResizeColumns="True"
-						CanUserSortColumns="True"
-						GridLinesVisibility="All"
-						BorderThickness="1" BorderBrush="Gray"
-						Height="140">
+                        IsReadOnly="True"
+                        CanUserReorderColumns="True"
+                        CanUserResizeColumns="True"
+                        CanUserSortColumns="True"
+                        GridLinesVisibility="All"
+                        BorderThickness="1" BorderBrush="Gray"
+                        Height="160">
 						<DataGrid.Columns>
 							<DataGridTemplateColumn Header="Time Stamp" Width="150">
 								<DataGridTemplateColumn.CellTemplate>
@@ -213,4 +216,3 @@
 		</TabItem>
 	</TabControl>
 </Window>
-

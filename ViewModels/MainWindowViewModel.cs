@@ -241,11 +241,16 @@ namespace SatisfatorySync.ViewModels
 
                 try
                 {
+                    // Use User Home for default folder
+                    string suggestedPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                    var suggestedFolder = await storageProvider.TryGetFolderFromPathAsync(suggestedPath);
+
                     var saveFileResult = await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
                     {
                         Title = "Save settings to file...",
                         FileTypeChoices = fileTypeList_XML,
-                        SuggestedFileName = "SatfSyncSettings.xml"
+                        SuggestedFileName = "SatfSyncSettings.xml",
+                        SuggestedStartLocation = suggestedFolder
                     });
 
                     // Check if a file path was selected
@@ -288,10 +293,15 @@ namespace SatisfatorySync.ViewModels
 
                 try
                 {
+                    // Use User Home for default folder
+                    string suggestedPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                    var suggestedFolder = await storageProvider.TryGetFolderFromPathAsync(suggestedPath);
+
                     var openFileResult = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
                     {
                         Title = "Load settings from file...",
-                        FileTypeFilter = fileTypeList_XML
+                        FileTypeFilter = fileTypeList_XML,
+                        SuggestedStartLocation = suggestedFolder
                     });
 
                     if (openFileResult != null && openFileResult.Count > 0)
