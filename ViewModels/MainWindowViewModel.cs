@@ -36,6 +36,19 @@ namespace SatisfatorySync.ViewModels
         private byte[] LocalHeaderData { get; set; } = new byte[512];  // Initialize a byte array to hold 512 bytes.
         private byte[] RemoteHeaderData { get; set; } = new byte[512];  // Initialize a byte array to hold 512 bytes.
 
+        private ObservableCollection<string> _localSaveGameList;
+        private ObservableCollection<string> _remoteSaveGameList;
+        public ObservableCollection<string> LocalSaveGameList
+        {
+            get => _localSaveGameList;
+            private set => this.RaiseAndSetIfChanged(ref _localSaveGameList, value);
+        }
+        public ObservableCollection<string> RemoteSaveGameList
+        {
+            get => _remoteSaveGameList;
+            private set => this.RaiseAndSetIfChanged(ref _remoteSaveGameList, value);
+        }
+
         private string _localGameName = "Local Game";
         public string LocalGameName
         {
@@ -176,6 +189,7 @@ namespace SatisfatorySync.ViewModels
         public ReactiveCommand<Unit, Unit> SaveSettingsCommand { get; set; }
         public ReactiveCommand<Unit, Unit> PickLocalFolderCommand { get; set; }
         public ReactiveCommand<Unit, Unit> PickBlueprintsFolderCommand { get; set; }
+        public ReactiveCommand<Unit, Unit> RefreshLocalSaveGameListCommand { get; set; }
 
         public MainWindowViewModel() // Constructor
         {
@@ -186,12 +200,15 @@ namespace SatisfatorySync.ViewModels
             SaveSettingsCommand = ReactiveCommand.CreateFromTask(CMDsaveSettings);
             PickLocalFolderCommand = ReactiveCommand.CreateFromTask(CMDpickLocalFolder);
             PickBlueprintsFolderCommand = ReactiveCommand.CreateFromTask(CMDpickBlueprintsFolder);
+            RefreshLocalSaveGameListCommand = ReactiveCommand.CreateFromTask(CMDrefreshLocalSaveGameList);
 
             //Initialisations
             initUpdateTimer();
             _localSettings = new LocalSettings();
             initLog();
             _selectedIndex = 0; // Default to showing the first tab
+            _localSaveGameList = new ObservableCollection<string>();
+            _remoteSaveGameList = new ObservableCollection<string>();
 
             //Filetypes
             // Create a list of FilePickerFileType instances
@@ -486,6 +503,30 @@ namespace SatisfatorySync.ViewModels
             }
         }
 
+        // Task to load .sav files from the directory specified in FilePath
+        private async Task CMDrefreshLocalSaveGameList()
+        {
+            _localSaveGameList.Clear(); // Clear existing items
+
+            if (Directory.Exists(FilePath))
+            {
+                // Use Task.Run to perform I/O operation on a background thread
+                var saveFiles = await Task.Run(() => Directory.GetFiles(FilePath, "*.sav"));
+
+                foreach (var file in saveFiles)
+                {
+                    // Update the UI-bound collection on the UI thread safely
+                    _localSaveGameList.Add(Path.GetFileName(file)); // Add file names to the collection
+                }
+
+                LogMessage("updated local game list", "success", ColorGreen);
+            }
+            else
+            {
+                LogMessage("updated local game list", "path not found! Check path to save games in settings.", ColorYellow);
+            }
+        }
+
         private void LoadSettingsOnStartup()
         {
             // Get the path to the user's application data directory
@@ -667,7 +708,6 @@ namespace SatisfatorySync.ViewModels
 
             return $"{FtpAddress}{fileName}";
         }
-
     }
     public class LogEntry
     {
