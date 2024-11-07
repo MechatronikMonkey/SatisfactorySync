@@ -36,7 +36,7 @@
 					<StackPanel Grid.Column="0" Margin="20">
 						<TextBlock Text="Pick Local Save Game" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
 						<StackPanel Orientation="Horizontal" Margin="20,0,0,0" VerticalAlignment="Center">
-							<ComboBox  ItemsSource="{Binding LocalSaveGameList}" PlaceholderText="Select a file..." Width="200" Margin="20,0,0,0" VerticalAlignment="Center"/>
+							<ComboBox  ItemsSource="{Binding LocalSaveGameList}" PlaceholderText="Select a file..." Width="250" Margin="20,0,0,0" VerticalAlignment="Center"/>
 							<Button Width="33" Height="33" Margin="10,0,0,0" ToolTip.Tip="Refresh List" Command="{Binding RefreshLocalSaveGameListCommand}">
 								<Image Source="/Assets/reload.png" Width="25" Height="25"/>
 							</Button>
@@ -73,8 +73,8 @@
 					<StackPanel Grid.Column="1" Margin="20">
 						<TextBlock Text="Pick Remote Save Game" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
 						<StackPanel Orientation="Horizontal" Margin="20,0,0,0" VerticalAlignment="Center">
-							<ComboBox PlaceholderText="Select a file..." Width="200" Margin="20,0,0,0"/>
-							<Button Width="33" Height="33" Margin="10,0,0,0" ToolTip.Tip="Refresh List">
+							<ComboBox ItemsSource="{Binding RemoteSaveGameList}" PlaceholderText="Select a file..." Width="250" Margin="20,0,0,0"/>
+							<Button Width="33" Height="33" Margin="10,0,0,0" ToolTip.Tip="Refresh List" Command="{Binding RefreshRemoteSaveGameListCommand}">
 								<Image Source="/Assets/reload.png" Width="25" Height="25"/>
 							</Button>
 						</StackPanel>

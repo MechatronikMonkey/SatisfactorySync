@@ -190,6 +190,7 @@ namespace SatisfatorySync.ViewModels
         public ReactiveCommand<Unit, Unit> PickLocalFolderCommand { get; set; }
         public ReactiveCommand<Unit, Unit> PickBlueprintsFolderCommand { get; set; }
         public ReactiveCommand<Unit, Unit> RefreshLocalSaveGameListCommand { get; set; }
+        public ReactiveCommand<Unit, Unit> RefreshRemoteSaveGameListCommand { get; set; }
 
         public MainWindowViewModel() // Constructor
         {
@@ -201,6 +202,7 @@ namespace SatisfatorySync.ViewModels
             PickLocalFolderCommand = ReactiveCommand.CreateFromTask(CMDpickLocalFolder);
             PickBlueprintsFolderCommand = ReactiveCommand.CreateFromTask(CMDpickBlueprintsFolder);
             RefreshLocalSaveGameListCommand = ReactiveCommand.CreateFromTask(CMDrefreshLocalSaveGameList);
+            RefreshRemoteSaveGameListCommand = ReactiveCommand.CreateFromTask(CMDrefreshRemoteSaveGameList);
 
             //Initialisations
             initUpdateTimer();
@@ -519,11 +521,59 @@ namespace SatisfatorySync.ViewModels
                     _localSaveGameList.Add(Path.GetFileName(file)); // Add file names to the collection
                 }
 
-                LogMessage("updated local game list", "success", ColorGreen);
+                LogMessage("update local game list", "success", ColorGreen);
             }
             else
             {
-                LogMessage("updated local game list", "path not found! Check path to save games in settings.", ColorYellow);
+                LogMessage("update local game list", "path not found! Check path to save games in settings.", ColorYellow);
+            }
+        }
+
+        private async Task CMDrefreshRemoteSaveGameList()
+        {
+            _remoteSaveGameList.Clear(); // Clear existing items
+
+            if (string.IsNullOrWhiteSpace(FtpAddress))
+            {
+                LogMessage("FTP credentials", "FTP address not set.", ColorYellow);
+                return;
+            }
+            else if (string.IsNullOrWhiteSpace(FtpUser))
+            {
+                LogMessage("FTP credentials", "FTP user not set.", ColorYellow);
+                return;
+            }
+            else if (string.IsNullOrWhiteSpace(FtpPassword))
+            {
+                LogMessage("FTP credentials", "FTP password not set", ColorYellow);
+                return;
+            }
+
+            try
+            {
+                using (var client = new FtpClient(FtpAddress))
+                {
+                    client.Credentials = new NetworkCredential(FtpUser, FtpPassword);
+
+                    await Task.Run(() => client.Connect());
+
+                    // List all files in the FTP directory and filter for .sav files
+                    var items = await Task.Run(() => client.GetListing("/"));
+
+                    foreach (var item in items)
+                    {
+                        if (item.Type == FtpObjectType.File && item.Name.EndsWith(".sav", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _remoteSaveGameList.Add(item.Name);
+                        }
+                    }
+
+                    LogMessage("update remote game list", $"success from {FtpAddress}", ColorGreen);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage("FTP file list", $"Error: {ex.Message}", ColorRed);
             }
         }
 
