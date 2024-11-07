@@ -17,6 +17,8 @@ using Avalonia.Platform.Storage;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Linq;
+using System.Net;
+using FluentFTP;
 
 
 
@@ -29,6 +31,9 @@ namespace SatisfatorySync.ViewModels
         private string ColorRed { get; } = "#ffb3b3";
         private string ColorYellow { get; } = "#fcffb3";
         private string ColorGreen { get; } = "#b3ffb8";
+
+        private byte[] LocalHeaderData { get; set; } = new byte[512];  // Initialize a byte array to hold 512 bytes.
+        private byte[] RemoteHeaderData { get; set; } = new byte[512];  // Initialize a byte array to hold 512 bytes.
 
         private string _localGameName = "Local Game";
         public string LocalGameName
@@ -151,6 +156,13 @@ namespace SatisfatorySync.ViewModels
             set => this.RaiseAndSetIfChanged(ref _syncBlueprints, value);
         }
 
+        private int _selectedIndex;
+        public int SelectedIndex
+        {
+            get => _selectedIndex;
+            set => this.RaiseAndSetIfChanged(ref _selectedIndex, value);
+        }
+
         public ObservableCollection<LogEntry> LogEntries { get; set; }
 
         private DispatcherTimer _timer;
@@ -174,6 +186,7 @@ namespace SatisfatorySync.ViewModels
             initUpdateTimer();
             _localSettings = new LocalSettings();
             initLog();
+            _selectedIndex = 0; // Default to showing the first tab
 
             //Filetypes
             // Create a list of FilePickerFileType instances
@@ -207,6 +220,8 @@ namespace SatisfatorySync.ViewModels
         private void TimerTickUpdateCallback(object sender, EventArgs e)
         {
             // This will be called every 2 seconds
+            //GetLocalHeaderData();
+            //GetRemoteHeaderData();
 
         }
 
@@ -252,6 +267,9 @@ namespace SatisfatorySync.ViewModels
                     // Handle exceptions during the export process
                     LogMessage("settings export", $"failed: {ex.Message}", ColorRed);
                 }
+
+                // After saving, switch back to the Sync tab
+                SelectedIndex = 0;
             }
         }
 
@@ -294,6 +312,9 @@ namespace SatisfatorySync.ViewModels
                     // Handle exceptions during the load process
                     LogMessage("settings load", $"failed: {ex.Message}", ColorRed);
                 }
+
+                // After saving, switch back to the Sync tab
+                SelectedIndex = 0;
             }
         }
 
@@ -331,6 +352,9 @@ namespace SatisfatorySync.ViewModels
                 // Handle exceptions during the save process
                 LogMessage("settings save", $"failed: {ex.Message}", ColorRed);
             }
+
+            // After saving, switch back to the Sync tab
+            SelectedIndex = 0;
         }
 
         private void LoadSettingsOnStartup()
@@ -430,6 +454,91 @@ namespace SatisfatorySync.ViewModels
             }
             return null; // Return null if the application lifetime is not of the expected type
         }
+
+        // Method to read header data from a local file
+        public void GetLocalHeaderData()
+        {
+            try
+            {
+                if (File.Exists(FilePath))
+                {
+                    using (FileStream fileStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read))
+                    {
+                        byte[] readData = new byte[512]; // Initialize a byte array for 512 bytes.
+                        int bytesRead = fileStream.Read(readData, 0, readData.Length); // Read up to 512 bytes.
+
+                        if (bytesRead < 512)
+                        {
+                            throw new InvalidOperationException("Local file must contain at least 512 bytes.");
+                        }
+
+                        LocalHeaderData = readData; // Store data
+
+                        // Log a successful entry
+                        LogMessage("Local header data read", "successful", ColorGreen);
+                    }
+                }
+                else
+                {
+                    throw new FileNotFoundException($"The local file '{FilePath}' does not exist.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions and log the error message
+                LogMessage("Local header data read", $"failed: {ex.Message}", ColorRed);
+            }
+        }
+
+        // Method to read header data from a remote FTP server
+        public void GetRemoteHeaderData()
+        {
+            string fileName = Path.GetFileName(FilePath); // Extract the filename from FilePath
+            string ftpPath = BuildFtpPath(fileName); // Construct the FTP path
+
+            using (var client = new FtpClient(FtpAddress))
+            {
+                client.Credentials = new NetworkCredential(FtpUser, FtpPassword);
+                try
+                {
+                    client.Connect(); // Connect to the FTP server
+
+                    // Read the first 512 bytes
+                    using (var stream = client.OpenRead(ftpPath))
+                    {
+                        byte[] readData = new byte[512];
+                        int bytesRead = stream.Read(readData, 0, readData.Length);
+
+                        if (bytesRead < 512)
+                        {
+                            throw new InvalidOperationException("FTP file must contain at least 512 bytes.");
+                        }
+
+                        RemoteHeaderData = readData; // Store data
+
+                        // Log a successful entry
+                        LogMessage("Remote header data read", "successful", ColorGreen);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle exceptions and log the error message
+                    LogMessage("Remote header data read", $"failed: {ex.Message}", ColorRed);
+                }
+            }
+        }
+
+        public string BuildFtpPath(string fileName)
+        {
+            // Ensure that the FTP address ends with a slash for proper URL formation
+            if (!FtpAddress.EndsWith("/"))
+            {
+                FtpAddress += "/";
+            }
+
+            return $"{FtpAddress}{fileName}";
+        }
+
     }
     public class LogEntry
     {
