@@ -195,7 +195,7 @@
 					<StackPanel Orientation="Horizontal" Margin="0,5">
 						<TextBlock Text="Blueprints path:" Width="150" VerticalAlignment="Center"/>
 						<TextBox Width="500" Watermark="Enter the remote path..." Text="{Binding BlueprintsPath, Mode=TwoWay}"/>
-						<Button Content="..." Width="50" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
+						<Button Content="..." Width="50" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalContentAlignment="Center" Command="{Binding PickBlueprintsFolderCommand}"/>
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Margin="0,5">

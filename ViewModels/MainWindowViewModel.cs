@@ -175,6 +175,7 @@ namespace SatisfatorySync.ViewModels
         public ReactiveCommand<Unit, Unit> ImportSettingsCommand { get; set; }
         public ReactiveCommand<Unit, Unit> SaveSettingsCommand { get; set; }
         public ReactiveCommand<Unit, Unit> PickLocalFolderCommand { get; set; }
+        public ReactiveCommand<Unit, Unit> PickBlueprintsFolderCommand { get; set; }
 
         public MainWindowViewModel() // Constructor
         {
@@ -184,6 +185,7 @@ namespace SatisfatorySync.ViewModels
             ImportSettingsCommand = ReactiveCommand.CreateFromTask(CMDimportSettings);
             SaveSettingsCommand = ReactiveCommand.CreateFromTask(CMDsaveSettings);
             PickLocalFolderCommand = ReactiveCommand.CreateFromTask(CMDpickLocalFolder);
+            PickBlueprintsFolderCommand = ReactiveCommand.CreateFromTask(CMDpickBlueprintsFolder);
 
             //Initialisations
             initUpdateTimer();
@@ -396,7 +398,7 @@ namespace SatisfatorySync.ViewModels
                     // Open a folder picker dialog
                     var openFolderResult = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
                     {
-                        Title = "Select a Folder",
+                        Title = "Select save games folder",
                         // Set the default start location to the user's home directory
                         SuggestedStartLocation = saveGameFolder
                     });
@@ -416,6 +418,64 @@ namespace SatisfatorySync.ViewModels
                 }
             }
         }
+
+        private async Task CMDpickBlueprintsFolder()
+        {
+            var topLevel = GetMainWindow();
+
+            if (topLevel != null)
+            {
+                var storageProvider = topLevel.StorageProvider;
+
+                try
+                {
+                    IStorageFolder blueprintsFolder = null;
+
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        // Use %LOCALAPPDATA% on Windows
+                        string localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                        string blueprintPath = Path.Combine(localAppDataPath, "FactoryGame", "Saved", "SaveGames", "blueprints");
+
+                        blueprintsFolder = await storageProvider.TryGetFolderFromPathAsync(blueprintPath);
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
+                        // Use a different path on Linux
+                        string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                        string blueprintPath = Path.Combine(homePath, ".config", "FactoryGame", "Saved", "SaveGames", "blueprints");
+
+                        blueprintsFolder = await storageProvider.TryGetFolderFromPathAsync(blueprintPath);
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+                        // Handle macOS... no reference to test... not implemented on osx for now.
+                    }
+
+                    // Open a folder picker dialog
+                    var openFolderResult = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                    {
+                        Title = "Select blueprints folder",
+                        // Set the default start location to the user's home directory
+                        SuggestedStartLocation = blueprintsFolder
+                    });
+
+                    if (openFolderResult != null && openFolderResult.Count > 0)
+                    {
+                        // store selected folder path
+                        BlueprintsPath = openFolderResult[0].TryGetLocalPath();
+
+                        LogMessage("blueprints selection", $"successful: {openFolderResult[0].TryGetLocalPath()}", ColorGreen);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle exceptions during the folder picking process
+                    LogMessage("blueprints selection", $"failed: {ex.Message}", ColorRed);
+                }
+            }
+        }
+
         private void LoadSettingsOnStartup()
         {
             // Get the path to the user's application data directory
