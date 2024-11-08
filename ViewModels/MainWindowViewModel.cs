@@ -127,6 +127,8 @@ namespace SatisfatorySync.ViewModels
         private string _filePath = string.Empty;
         private string _blueprintsPath = string.Empty;
         private bool _syncBlueprints = false;
+        private string _selectedFileLocal = string.Empty;
+        private string _selectedFileRemote = string.Empty;
 
         public string MyName
         {
@@ -168,6 +170,43 @@ namespace SatisfatorySync.ViewModels
         {
             get => _syncBlueprints;
             set => this.RaiseAndSetIfChanged(ref _syncBlueprints, value);
+        }
+
+        public string SelectedFileLocal
+        {
+            get => _selectedFileLocal;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _selectedFileLocal, value);
+
+                // Check if the selected value is in RemoteSaveGameList
+                if (RemoteSaveGameList.Contains(value))
+                {
+                    // Set the corresponding value only if it's different from the current selection
+                    if (_selectedFileRemote != value)
+                    {
+                        SelectedFileRemote = value; // Set the corresponding value if it exists
+                    }
+                }
+            }
+        }
+
+        public string SelectedFileRemote
+        {
+            get => _selectedFileRemote;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _selectedFileRemote, value);
+
+                // Check if the selected value is in RemoteSaveGameList
+                if (LocalSaveGameList.Contains(value))
+                {
+                    if (_selectedFileLocal != value)
+                    {
+                        SelectedFileLocal = value; // Set the corresponding value if it exists
+                    }
+                }
+            }
         }
 
         private int _selectedIndex;
@@ -246,7 +285,9 @@ namespace SatisfatorySync.ViewModels
             // This will be called every 2 seconds
             //GetLocalHeaderData();
             //GetRemoteHeaderData();
-
+            //trySelectLocalFile();
+            LogMessage("settings export", $"local file: {SelectedFileLocal}", ColorGreen);
+            LogMessage("settings export", $"remote file: {SelectedFileRemote}", ColorGreen);
         }
 
         // export settings
@@ -626,7 +667,8 @@ namespace SatisfatorySync.ViewModels
             _localSettings.filePath = FilePath;
             _localSettings.blueprintsPath = BlueprintsPath;
             _localSettings.syncBlueprints = SyncBlueprints;
-
+            _localSettings.selectedFileLocal = SelectedFileLocal;
+            _localSettings.selectedFileRemote = SelectedFileRemote;
         }
 
         private void LoadSettings()
@@ -638,6 +680,8 @@ namespace SatisfatorySync.ViewModels
             FilePath = _localSettings.filePath;
             BlueprintsPath = _localSettings.blueprintsPath;
             SyncBlueprints = _localSettings.syncBlueprints;
+            SelectedFileLocal = _localSettings.selectedFileLocal;
+            SelectedFileRemote = _localSettings.selectedFileRemote;
         }
         private void initLog()
         {
@@ -785,6 +829,8 @@ namespace SatisfatorySync.ViewModels
         public string ftpUser { get; set; } = string.Empty;
         public string ftpPassword { get; set; } = string.Empty;
         public string filePath { get; set; } = string.Empty;
+        public string selectedFileLocal { get; set; } = string.Empty;
+        public string selectedFileRemote { get; set; } = string.Empty;
         public string blueprintsPath { get; set; } = string.Empty;
         public bool syncBlueprints { get; set; } = false;
     }
