@@ -118,7 +118,7 @@
 						</StackPanel>
 						<StackPanel Margin="10" HorizontalAlignment="Center">
 							<TextBlock Text="Upload" HorizontalAlignment="Center" Foreground="#13bd13" FontWeight="Bold"/>
-							<Button Margin="10" Width="150" Height="120" Name="btnUpload">
+							<Button Margin="10" Width="150" Height="120" Name="btnUpload"  Command="{Binding StartUploadCommand}">
 								<Path Data="M120,60 L80,20 L80,40 L30,40 L30,80 L80,80 L80,100 Z" Fill="#13bd13" HorizontalAlignment="Center" VerticalAlignment="Center" Width="140" Height="115"/>
 							</Button>
 						</StackPanel>

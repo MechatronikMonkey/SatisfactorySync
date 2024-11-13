@@ -25,6 +25,10 @@
 		<Style Selector="DataGridRow" x:CompileBindings="True" x:DataType="local:ViewModels.LogEntry">
 			<Setter Property="Background" Value="{Binding RowColor}"/>
 		</Style>
+    </Application.Styles>
 
-    </Application.Styles>	
+	<Application.Resources>
+		<FontFamily x:Key="PixelFont">/Assets/fonts/#Press Start 2P</FontFamily>
+	</Application.Resources>
+	
 </Application>

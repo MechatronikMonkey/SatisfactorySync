@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SatisfatorySync.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="950" d:DesignHeight="520"
+        x:Class="SatisfatorySync.Views.SyncWindow"
+        x:DataType="vm:SyncWindowViewModel"
+        Icon="/Assets/satsync.ico"
+        Title="SatisfatorySync"
+        Width="900"
+        Height="500"
+		WindowStartupLocation="CenterOwner"
+		CanResize="False"
+		ShowInTaskbar="False"
+		SystemDecorations="None"
+		Background="Transparent">
+
+	<Design.DataContext>
+		<vm:SyncWindowViewModel/>
+	</Design.DataContext>
+
+
+	<Grid>
+		<!-- Background Image -->
+		<Image Source="/Assets/ObjectScanner.png"
+               Stretch="UniformToFill"
+               VerticalAlignment="Center"
+               HorizontalAlignment="Center" />
+
+		<!-- Overlay Text or other content -->
+		<StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="350,130,0,0" Orientation="Vertical">
+			<StackPanel Orientation="Horizontal">
+				<TextBlock Text="Connecting..." Foreground="White" FontSize="10" FontFamily="{StaticResource PixelFont}"/>
+				<TextBlock Text="OK" Foreground="Green" FontSize="12" FontFamily="{StaticResource PixelFont}"/>
+			</StackPanel>
+			<StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+				<TextBlock Text="Get sync status..." Foreground="White" FontSize="10" FontFamily="{StaticResource PixelFont}"/>
+				<TextBlock Text="OK" Foreground="Green" FontSize="12" FontFamily="{StaticResource PixelFont}"/>
+			</StackPanel>
+		</StackPanel>
+	</Grid>
+
+
+</Window>

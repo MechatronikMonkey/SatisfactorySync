@@ -20,6 +20,7 @@ using System.Linq;
 using System.Net;
 using FluentFTP;
 using System.Runtime.InteropServices;
+using SatisfatorySync.Views;
 
 
 
@@ -239,6 +240,7 @@ namespace SatisfatorySync.ViewModels
         public ReactiveCommand<Unit, Unit> PickBlueprintsFolderCommand { get; set; }
         public ReactiveCommand<Unit, Unit> RefreshLocalSaveGameListCommand { get; set; }
         public ReactiveCommand<Unit, Unit> RefreshRemoteSaveGameListCommand { get; set; }
+        public ReactiveCommand<Unit, Unit> StartUploadCommand { get; set; }
 
         public MainWindowViewModel() // Constructor
         {
@@ -251,6 +253,7 @@ namespace SatisfatorySync.ViewModels
             PickBlueprintsFolderCommand = ReactiveCommand.CreateFromTask(CMDpickBlueprintsFolder);
             RefreshLocalSaveGameListCommand = ReactiveCommand.CreateFromTask(CMDrefreshLocalSaveGameList);
             RefreshRemoteSaveGameListCommand = ReactiveCommand.CreateFromTask(CMDrefreshRemoteSaveGameList);
+            StartUploadCommand = ReactiveCommand.Create(CMDstartUPLOAD);
 
             //Initialisations
             initUpdateTimer();
@@ -633,6 +636,11 @@ namespace SatisfatorySync.ViewModels
             }
         }
 
+        private async void CMDstartUPLOAD()
+        {
+            var syncWindow = new SyncWindow();
+            await syncWindow.ShowDialog(GetMainWindow());
+        }
         private void LoadSettingsOnStartup()
         {
             // Get the path to the user's application data directory
