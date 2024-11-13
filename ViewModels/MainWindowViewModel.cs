@@ -297,7 +297,7 @@ namespace SatisfatorySync.ViewModels
             // This will be called every 2 seconds
             GetLocalHeaderData();
             GetRemoteHeaderData();
-            //ParseLocalHeaderData();
+            ParseLocalHeaderData();
             //ParseRemoteHeaderData();
         }
 
@@ -804,7 +804,7 @@ namespace SatisfatorySync.ViewModels
         }
 
         // Method to read header data from a remote FTP server
-        public async Task GetRemoteHeaderData()
+        public void GetRemoteHeaderData()
         {
             string fileName;
 
@@ -822,7 +822,7 @@ namespace SatisfatorySync.ViewModels
             }
 
             string ftpPath = "/" + fileName; // Construct the FTP path
-            
+
             using (var client = new FtpClient(FtpAddress))
             {
                 client.Credentials = new NetworkCredential(FtpUser, FtpPassword);
@@ -853,6 +853,157 @@ namespace SatisfatorySync.ViewModels
                     LogMessage("Remote header data read", $"failed: {ex.Message}", ColorRed);
                 }
             }
+        }
+
+        private string ExtractSessionDefinition(byte[] headerData)
+        {
+            // Check if the header data is null or empty
+            if (headerData == null || headerData.Length == 0)
+            {
+                return null; // Or handle this case as needed
+            }
+
+            // Convert the target word to a byte array
+            byte[] targetWord = System.Text.Encoding.ASCII.GetBytes("SessionDefinition=");
+
+            int position = IndexOfBytes(headerData, targetWord);
+
+            // If the word is not found, return null
+            if (position == -1)
+            {
+                return null; // the session definition was not found
+            }
+
+            // Start parsing the word after "SessionDefinition="
+            int startIndex = position + targetWord.Length; // Move to the end of the found word
+            List<byte> extractedData = new List<byte>();
+
+            // Iterate until we hit a 0x00 byte
+            while (startIndex < headerData.Length && headerData[startIndex] != 0x00)
+            {
+                extractedData.Add(headerData[startIndex]);
+                startIndex++;
+            }
+
+            // Convert extracted ASCII bytes into a string
+            return System.Text.Encoding.ASCII.GetString(extractedData.ToArray());
+        }
+
+        private string ExtractGameName(byte[] headerData, string _sessionDefinition)
+        {
+            // Check if the header data is null or empty
+            if (headerData == null || headerData.Length == 0 || string.IsNullOrEmpty(_sessionDefinition))
+            {
+                return null; // Or handle this case as needed
+            }
+
+            // Convert the session definition to a byte array
+            byte[] sessionDefinitionBytes = System.Text.Encoding.ASCII.GetBytes(_sessionDefinition);
+
+            // Find the index of the session definition in the header data
+            int position = IndexOfBytes(headerData, sessionDefinitionBytes);
+
+            // If the session definition is not found, return null
+            if (position == -1)
+            {
+                return null; // The session definition was not found
+            }
+
+            // Move the startIndex to the end of the session definition PLUS 2 to skip checksum
+            // Now, we will skip any following 0x00 bytes
+            int startIndex = position + sessionDefinitionBytes.Length + 2;
+
+            // Skip over any 0x00 bytes
+            while (startIndex < headerData.Length && headerData[startIndex] == 0x00)
+            {
+                startIndex++;
+            }
+
+            // Check if we've reached the end of the header data
+            if (startIndex >= headerData.Length)
+            {
+                return null; // No Game Name found after session definition
+            }
+
+            List<byte> extractedGameName = new List<byte>();
+
+            // Now iterate until we hit the next 0x00 byte
+            while (startIndex < headerData.Length && headerData[startIndex] != 0x00)
+            {
+                extractedGameName.Add(headerData[startIndex]);
+                startIndex++;
+            }
+
+            // Convert extracted ASCII bytes into a string
+            return System.Text.Encoding.ASCII.GetString(extractedGameName.ToArray());
+        }
+        private void ParseLocalHeaderData()
+        {
+
+            string sessionDefinition = null;
+            string gameName = null;
+
+            // only extract values if selected file is not 0
+            if (!string.IsNullOrEmpty(_selectedFileLocal))
+            {
+                sessionDefinition = ExtractSessionDefinition(LocalHeaderData);
+                gameName = ExtractGameName(LocalHeaderData, sessionDefinition);
+
+                // Call the extracted method to retrieve the session definition
+                if (sessionDefinition != null)
+                {
+                    // Store or use the extracted session definition string
+                    LocalSessionDefinition = sessionDefinition;
+
+                    // Optionally, log or display the extracted string
+                    LogMessage("Extracted Session Definition:", sessionDefinition, ColorGreen);
+                }
+                else
+                {
+                    // Handle the case where the word was not found
+                    LogMessage("SessionDefinition not found in LocalHeaderData", string.Empty, ColorRed);
+                }
+
+                if (gameName != null)
+                {
+                    LocalGameName = gameName;
+                    LogMessage("Extracted Game Name:", gameName, ColorGreen);
+                }
+                else
+                {
+                    LogMessage("Game Name not found after session definition", string.Empty, ColorRed);
+                }
+            }
+        }
+
+        int IndexOfBytes(byte[] haystack, byte[] needle)
+        {
+            // Randfallbehandlung: Falls das Suchmuster länger als das Byte-Array ist
+            if (needle.Length == 0 || haystack.Length < needle.Length)
+            {
+                return -1;
+            }
+
+            // Schleife durch das Haupt-Array
+            for (int i = 0; i <= haystack.Length - needle.Length; i++)
+            {
+                // Vergleich der Byte-Folge mit dem Suchmuster
+                bool match = true;
+                for (int j = 0; j < needle.Length; j++)
+                {
+                    if (haystack[i + j] != needle[j])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match)
+                {
+                    return i; // Rückgabe des Index des ersten Vorkommens
+                }
+            }
+
+            return -1; // Wenn das Muster nicht gefunden wird
         }
     }
     public class LogEntry
