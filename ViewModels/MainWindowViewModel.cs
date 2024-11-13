@@ -295,9 +295,10 @@ namespace SatisfatorySync.ViewModels
         private void TimerTickUpdateCallback(object sender, EventArgs e)
         {
             // This will be called every 2 seconds
-            //GetLocalHeaderData();
-            //GetRemoteHeaderData();
-            //trySelectLocalFile();
+            GetLocalHeaderData();
+            GetRemoteHeaderData();
+            //ParseLocalHeaderData();
+            //ParseRemoteHeaderData();
         }
 
         // export settings
@@ -754,11 +755,27 @@ namespace SatisfatorySync.ViewModels
         // Method to read header data from a local file
         public void GetLocalHeaderData()
         {
+            string _completeFilePath;
+
+            // Ensure _selectedFileLocal is not null or empty
+            if (!string.IsNullOrEmpty(_selectedFileLocal))
+            {
+                _completeFilePath = Path.Combine(FilePath, _selectedFileLocal);
+            }
+            else
+            {
+                // Handle the case where _selectedFileLocal is null or empty
+                LogMessage("Selected local file", "empty", ColorYellow);
+                _completeFilePath = null; // or set to a default value or raise an error
+                return;
+            }
+
+
             try
             {
-                if (File.Exists(FilePath))
+                if (File.Exists(_completeFilePath))
                 {
-                    using (FileStream fileStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read))
+                    using (FileStream fileStream = new FileStream(_completeFilePath, FileMode.Open, FileAccess.Read))
                     {
                         byte[] readData = new byte[512]; // Initialize a byte array for 512 bytes.
                         int bytesRead = fileStream.Read(readData, 0, readData.Length); // Read up to 512 bytes.
@@ -787,11 +804,25 @@ namespace SatisfatorySync.ViewModels
         }
 
         // Method to read header data from a remote FTP server
-        public void GetRemoteHeaderData()
+        public async Task GetRemoteHeaderData()
         {
-            string fileName = Path.GetFileName(FilePath); // Extract the filename from FilePath
-            string ftpPath = BuildFtpPath(fileName); // Construct the FTP path
+            string fileName;
 
+            // Ensure _selectedFileRemote is not null or empty or the new item
+            if (!string.IsNullOrEmpty(_selectedFileRemote) && _selectedFileRemote != NewItem)
+            {
+                fileName = _selectedFileRemote;
+            }
+            else
+            {
+                // Handle the case where _selectedFileLocal is null or empty
+                LogMessage("Selected remote file", "empty", ColorYellow);
+                fileName = null; // or set to a default value or raise an error
+                return;
+            }
+
+            string ftpPath = "/" + fileName; // Construct the FTP path
+            
             using (var client = new FtpClient(FtpAddress))
             {
                 client.Credentials = new NetworkCredential(FtpUser, FtpPassword);
@@ -822,17 +853,6 @@ namespace SatisfatorySync.ViewModels
                     LogMessage("Remote header data read", $"failed: {ex.Message}", ColorRed);
                 }
             }
-        }
-
-        public string BuildFtpPath(string fileName)
-        {
-            // Ensure that the FTP address ends with a slash for proper URL formation
-            if (!FtpAddress.EndsWith("/"))
-            {
-                FtpAddress += "/";
-            }
-
-            return $"{FtpAddress}{fileName}";
         }
     }
     public class LogEntry
