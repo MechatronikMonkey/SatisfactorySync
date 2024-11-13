@@ -32,6 +32,7 @@ namespace SatisfatorySync.ViewModels
         private string ColorRed { get; } = "#ffb3b3";
         private string ColorYellow { get; } = "#fcffb3";
         private string ColorGreen { get; } = "#b3ffb8";
+        private string NewItem { get; } = "--- NEW ---";
 
         private byte[] LocalHeaderData { get; set; } = new byte[512];  // Initialize a byte array to hold 512 bytes.
         private byte[] RemoteHeaderData { get; set; } = new byte[512];  // Initialize a byte array to hold 512 bytes.
@@ -179,13 +180,17 @@ namespace SatisfatorySync.ViewModels
             {
                 this.RaiseAndSetIfChanged(ref _selectedFileLocal, value);
 
-                // Check if the selected value is in RemoteSaveGameList
-                if (RemoteSaveGameList.Contains(value))
+                // Set the corresponding value only if it's different from the current selection
+                if (_selectedFileRemote != value && value != NewItem)
                 {
-                    // Set the corresponding value only if it's different from the current selection
-                    if (_selectedFileRemote != value)
+                    // Check if the selected value is in RemoteSaveGameList
+                    if (RemoteSaveGameList.Contains(value))
                     {
                         SelectedFileRemote = value; // Set the corresponding value if it exists
+                    }
+                    else
+                    {
+                        SelectedFileRemote = NewItem;
                     }
                 }
             }
@@ -198,12 +203,16 @@ namespace SatisfatorySync.ViewModels
             {
                 this.RaiseAndSetIfChanged(ref _selectedFileRemote, value);
 
-                // Check if the selected value is in RemoteSaveGameList
-                if (LocalSaveGameList.Contains(value))
+                if (_selectedFileLocal != value && value != NewItem)
                 {
-                    if (_selectedFileLocal != value)
+                    // Check if the selected value is in RemoteSaveGameList
+                    if (LocalSaveGameList.Contains(value))
                     {
                         SelectedFileLocal = value; // Set the corresponding value if it exists
+                    }
+                    else
+                    {
+                        SelectedFileLocal = NewItem;
                     }
                 }
             }
@@ -286,8 +295,6 @@ namespace SatisfatorySync.ViewModels
             //GetLocalHeaderData();
             //GetRemoteHeaderData();
             //trySelectLocalFile();
-            LogMessage("settings export", $"local file: {SelectedFileLocal}", ColorGreen);
-            LogMessage("settings export", $"remote file: {SelectedFileRemote}", ColorGreen);
         }
 
         // export settings
@@ -562,6 +569,8 @@ namespace SatisfatorySync.ViewModels
                     _localSaveGameList.Add(Path.GetFileName(file)); // Add file names to the collection
                 }
 
+                _localSaveGameList.Add(NewItem); // Add the "--- NEW ---" item once
+
                 LogMessage("update local game list", "success", ColorGreen);
             }
             else
@@ -608,6 +617,8 @@ namespace SatisfatorySync.ViewModels
                             _remoteSaveGameList.Add(item.Name);
                         }
                     }
+
+                    _remoteSaveGameList.Add(NewItem); // also Add the --- NEW --- item once.
 
                     LogMessage("update remote game list", $"success from {FtpAddress}", ColorGreen);
                 }
