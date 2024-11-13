@@ -298,7 +298,7 @@ namespace SatisfatorySync.ViewModels
             GetLocalHeaderData();
             GetRemoteHeaderData();
             ParseLocalHeaderData();
-            //ParseRemoteHeaderData();
+            ParseRemoteHeaderData();
         }
 
         // export settings
@@ -937,42 +937,178 @@ namespace SatisfatorySync.ViewModels
             // Convert extracted ASCII bytes into a string
             return System.Text.Encoding.ASCII.GetString(extractedGameName.ToArray());
         }
+
+        private TimeSpan? ExtractGameTime(byte[] headerData, string _gameName)
+        {
+            // Check if the header data is null or empty
+            if (headerData == null || headerData.Length == 0 || string.IsNullOrEmpty(_gameName))
+            {
+                return null; // Or handle this case as needed
+            }
+
+            // Convert the game name to a byte array
+            byte[] gameNameBytes = System.Text.Encoding.ASCII.GetBytes(_gameName);
+
+            // Find the index of the game name in the header data
+            int position = IndexOfBytes(headerData, gameNameBytes);
+
+            // If the game name is not found, return null
+            if (position == -1)
+            {
+                return null; // The game name was not found
+            }
+
+            // Move the startIndex to the end of the game name, skip 0x00 and checksum
+            int startIndex = position + gameNameBytes.Length + 1; // +1 for 0x00 end byte of game name
+
+            // Check if we've reached or exceeded the end of the header data
+            if (startIndex + 4 > headerData.Length)
+            {
+                return null; // Not enough bytes for game time
+            }
+
+            // Extract the next 4 bytes for game time
+            byte[] timeBytes = new byte[4];
+            Array.Copy(headerData, startIndex, timeBytes, 0, 4); // Copy the next 4 bytes
+
+            // Convert the byte array to an integer representing the time
+            // Assuming the time is stored as a total seconds
+            uint totalSeconds = BitConverter.ToUInt32(timeBytes, 0);
+
+            // Construct a TimeSpan from total seconds
+            TimeSpan timeSpan = TimeSpan.FromSeconds(totalSeconds);
+
+            return timeSpan; // Return the DateTime representing the game time
+        }
         private void ParseLocalHeaderData()
         {
-
             string sessionDefinition = null;
             string gameName = null;
+            TimeSpan? gameTime;
 
-            // only extract values if selected file is not 0
-            if (!string.IsNullOrEmpty(_selectedFileLocal))
+            // Check if the selected local file is valid
+            if (string.IsNullOrEmpty(_selectedFileLocal))
             {
-                sessionDefinition = ExtractSessionDefinition(LocalHeaderData);
-                gameName = ExtractGameName(LocalHeaderData, sessionDefinition);
+                return; // Exit the method
+            }
+            else if (_selectedFileLocal == NewItem)
+            {
+                // If _selectedFileLocal is NewItem, log a warning and set fields empty.
+                LocalGameName = string.Empty;
+                LocalSessionDefinition = string.Empty;
+                LocalPlaytime = string.Empty;
+                LastPushName = string.Empty;
+                LastPushDate = string.Empty;
 
-                // Call the extracted method to retrieve the session definition
-                if (sessionDefinition != null)
-                {
-                    // Store or use the extracted session definition string
-                    LocalSessionDefinition = sessionDefinition;
+                LogMessage("Warning: Selected local file is a new item. Parsing will be skipped.", string.Empty, ColorYellow);
+                return; // Exit the method
+            }
 
-                    // Optionally, log or display the extracted string
-                    LogMessage("Extracted Session Definition:", sessionDefinition, ColorGreen);
-                }
-                else
-                {
-                    // Handle the case where the word was not found
-                    LogMessage("SessionDefinition not found in LocalHeaderData", string.Empty, ColorRed);
-                }
+            // Proceed to extract values if the selected local file is valid
+            sessionDefinition = ExtractSessionDefinition(LocalHeaderData);
+            gameName = ExtractGameName(LocalHeaderData, sessionDefinition);
+            gameTime = ExtractGameTime(LocalHeaderData, gameName);
 
-                if (gameName != null)
-                {
-                    LocalGameName = gameName;
-                    LogMessage("Extracted Game Name:", gameName, ColorGreen);
-                }
-                else
-                {
-                    LogMessage("Game Name not found after session definition", string.Empty, ColorRed);
-                }
+            // Call the extracted method to retrieve the session definition
+            if (sessionDefinition != null)
+            {
+                // Store or use the extracted session definition string
+                LocalSessionDefinition = sessionDefinition;
+
+                // Optionally, log or display the extracted string
+                LogMessage("Extracted Session Definition:", sessionDefinition, ColorGreen);
+            }
+            else
+            {
+                // Handle the case where the word was not found
+                LogMessage("SessionDefinition not found in LocalHeaderData", string.Empty, ColorRed);
+            }
+
+            if (gameName != null)
+            {
+                LocalGameName = gameName;
+                LogMessage("Extracted Game Name:", gameName, ColorGreen);
+            }
+            else
+            {
+                LogMessage("Game Name not found after session definition", string.Empty, ColorRed);
+            }
+
+            if (gameTime.HasValue)
+            {
+                TimeSpan duration = gameTime.Value;
+                string formattedDuration = $"{(int)duration.TotalHours:D2}H {duration.Minutes:D2}m {duration.Seconds:D2}s";
+                LocalPlaytime = formattedDuration;
+                LogMessage("Extracted Game Time:", formattedDuration, ColorGreen);
+            }
+            else
+            {
+                LogMessage("Game Time not found", string.Empty, ColorRed);
+            }
+        }
+
+        private void ParseRemoteHeaderData()
+        {
+            string sessionDefinition = null;
+            string gameName = null;
+            TimeSpan? gameTime;
+
+            // Check if the selected remote file is valid
+            if (string.IsNullOrEmpty(_selectedFileRemote))
+            {
+                return; // Exit the method
+            }
+            else if (_selectedFileRemote == NewItem)
+            {
+                // If _selectedFileRemote is NewItem, log a warning and set fields empty.
+                RemoteGameName = string.Empty;
+                RemoteSessionDefinition = string.Empty;
+                RemotePlaytime = string.Empty;
+                RemoteLastPushName = string.Empty;
+                RemoteLastPushDate = string.Empty;
+
+                LogMessage("Warning: Selected remote file is a new item. Parsing will be skipped.", string.Empty, ColorYellow);
+                return; // Exit the method
+            }
+
+            // Proceed to extract values if the selected remote file is valid
+            sessionDefinition = ExtractSessionDefinition(RemoteHeaderData);
+            gameName = ExtractGameName(RemoteHeaderData, sessionDefinition);
+            gameTime = ExtractGameTime(RemoteHeaderData, gameName);
+
+            // Call the extracted method to retrieve the session definition
+            if (sessionDefinition != null)
+            {
+                // Store or use the extracted session definition string
+                RemoteSessionDefinition = sessionDefinition; // Assuming you have this property
+                LogMessage("Extracted Remote Session Definition:", sessionDefinition, ColorGreen);
+            }
+            else
+            {
+                // Handle the case where the word was not found
+                LogMessage("Remote SessionDefinition not found in RemoteHeaderData", string.Empty, ColorRed);
+            }
+
+            if (gameName != null)
+            {
+                RemoteGameName = gameName; // Assuming you have this property for remote game name
+                LogMessage("Extracted Remote Game Name:", gameName, ColorGreen);
+            }
+            else
+            {
+                LogMessage("Remote Game Name not found after remote session definition", string.Empty, ColorRed);
+            }
+
+            if (gameTime.HasValue)
+            {
+                TimeSpan duration = gameTime.Value;
+                string formattedDuration = $"{(int)duration.TotalHours:D2}H {duration.Minutes:D2}m {duration.Seconds:D2}s";
+                RemotePlaytime = formattedDuration; // Assuming you have this property for remote playtime
+                LogMessage("Extracted Remote Game Time:", formattedDuration, ColorGreen);
+            }
+            else
+            {
+                LogMessage("Remote Game Time not found", string.Empty, ColorRed);
             }
         }
 
