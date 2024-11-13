@@ -273,6 +273,9 @@ namespace SatisfatorySync.ViewModels
 
             // load settings
             LoadSettingsOnStartup();
+
+            // try init savegame lists local and remote
+            initGameListsOnStartup();
         }
 
         // initialization of the update Timer - add Callback function timer Tick event
@@ -665,6 +668,24 @@ namespace SatisfatorySync.ViewModels
             {
                 // Handle exceptions during the load process
                 LogMessage("settings load", $"failed: {ex.Message}", ColorRed);
+            }
+        }
+
+        private void initGameListsOnStartup()
+        {
+            if (_localSettings.ftpAddress != "" &&
+                _localSettings.ftpUser != "" &&
+                _localSettings.ftpPassword != "")
+            {
+                // try to update game list 
+                // Call the async method without blocking the UI
+                Task.Run(async () => await CMDrefreshRemoteSaveGameList()).Wait();
+            }
+
+            if (_localSettings.filePath != "")
+            {
+                // Call the async method without blocking the UI
+                Task.Run(async () => await CMDrefreshLocalSaveGameList()).Wait();
             }
         }
 
