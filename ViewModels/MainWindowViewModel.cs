@@ -21,6 +21,11 @@ using System.Net;
 using FluentFTP;
 using System.Runtime.InteropServices;
 using SatisfatorySync.Views;
+using static System.Collections.Specialized.BitVector32;
+using Tmds.DBus.Protocol;
+using static SatisfatorySync.ViewModels.MainWindowViewModel;
+using FluentFTP.Helpers;
+using System.Text.Json;
 
 
 
@@ -182,7 +187,7 @@ namespace SatisfatorySync.ViewModels
                 this.RaiseAndSetIfChanged(ref _selectedFileLocal, value);
 
                 // Set the corresponding value only if it's different from the current selection
-                if (_selectedFileRemote != value && value != NewItem)
+                if (_selectedFileRemote != value && value != NewItem && value != null)
                 {
                     // Check if the selected value is in RemoteSaveGameList
                     if (RemoteSaveGameList.Contains(value))
@@ -204,7 +209,7 @@ namespace SatisfatorySync.ViewModels
             {
                 this.RaiseAndSetIfChanged(ref _selectedFileRemote, value);
 
-                if (_selectedFileLocal != value && value != NewItem)
+                if (_selectedFileLocal != value && value != NewItem && value != null)
                 {
                     // Check if the selected value is in RemoteSaveGameList
                     if (LocalSaveGameList.Contains(value))
@@ -231,6 +236,15 @@ namespace SatisfatorySync.ViewModels
         private DispatcherTimer _timer;
         private LocalSettings _localSettings;
         List<FilePickerFileType> fileTypeList_XML { get; set; }
+
+        // Sync status
+        public enum SyncStatusType
+        {
+            Upload,
+            Download,
+            Backup,
+            Restore
+        }
 
         // Reactive Commands
         public ReactiveCommand<Unit, Unit> ExportSettingsCommand { get; }
@@ -628,6 +642,8 @@ namespace SatisfatorySync.ViewModels
                     _remoteSaveGameList.Add(NewItem); // also Add the --- NEW --- item once.
 
                     LogMessage("update remote game list", $"success from {FtpAddress}", ColorGreen);
+
+                    client.Disconnect();
                 }
             }
             catch (Exception ex)
@@ -638,30 +654,224 @@ namespace SatisfatorySync.ViewModels
 
         private async void CMDstartUPLOAD()
         {
+            // If local file is not selected - exit and error
+            if (string.IsNullOrEmpty(_selectedFileLocal))
+            {
+                LogMessage("Local file", "Not selected!", ColorRed);
+                return;
+            }
+
             var viewModel = new SyncWindowViewModel();
             var syncWindow = new SyncWindow(viewModel);
             syncWindow.Show(GetMainWindow());
 
+            // Stop update Loop and wait
             StopUpdateTimer();
             await Task.Delay(2000);
 
-            viewModel.updateStatusLastItem(" Ok", viewModel.ColorGreen, viewModel.visibleTrue);
-
-            viewModel.showButtons();
-            bool clickResult = await WaitForButtonClick(viewModel);
-            viewModel.hideButtons();
-
-            if (clickResult)
+            // Test FTP connection
+            bool ftpConSuccess = await testFTPConnection(viewModel);
+            if (!ftpConSuccess)
             {
-                viewModel.AddSyncLogItem("Clicked YES...", " YES", viewModel.visibleTrue, viewModel.ColorGreen);
+                viewModel.CloseWindow();
+                StartUpdateTimer();
+                return;
             }
-            else
+
+            // Do we upload a new file?
+            if (SelectedFileRemote == NewItem)
             {
-                viewModel.AddSyncLogItem("Clicked NO...", " NO", viewModel.visibleTrue, viewModel.ColorRed);
+                if (await askCreateNewFile(viewModel))
+                {
+                    string _completeFilePath = Path.Combine(FilePath, _selectedFileLocal);
+
+                    // Check if file exists on server if YES exit with error
+                    if (FileExists("/" + SelectedFileLocal))
+                    {
+                        viewModel.AddSyncLogItem("File already exists on server", "", viewModel.visibleTrue, viewModel.ColorRed);
+                        viewModel.AddSyncLogItem(" ", "Fail", viewModel.visibleTrue, viewModel.ColorRed);
+                        exitWindowWithError(viewModel);
+                        return;
+                    }
+
+                    // Create sync file
+                    string localTempFilePath = Path.GetTempFileName();
+                    viewModel.AddSyncLogItem("Create sync file...", " Ok", viewModel.visibleTrue, viewModel.ColorGreen);
+
+                    viewModel.AddSyncLogItem("Upload save game...", " Ok", viewModel.visibleFalse, viewModel.ColorGreen);
+
+                    // Upload file to server with same name as local file
+                    if (UploadFile(_completeFilePath, "/" + SelectedFileLocal))
+                    {
+                        // Successfully uploaded the save game
+                        appendToSyncLog(localTempFilePath, SyncStatusType.Upload, "first creation of file.");
+                        await Task.Delay(700);
+                        viewModel.updateStatusLastItem(" Ok", viewModel.ColorGreen, viewModel.visibleTrue);
+
+                        // Update Game List Remote
+                        await CMDrefreshRemoteSaveGameList();
+                    }
+                    else
+                    {
+                        // Upload not successfull
+                        appendToSyncLog(localTempFilePath, SyncStatusType.Upload, "Error on file Upload");
+                        await Task.Delay(600);
+                        viewModel.updateStatusLastItem(" Fail", viewModel.ColorRed, viewModel.visibleTrue);
+                        exitWindowWithError(viewModel);
+                        return;
+                    }
+
+                    // Extract filename for json file
+                    string newFileName = SelectedFileLocal.Substring(0, SelectedFileLocal.Length - 4);
+
+                    // Upload sync file - overwrite if one exists, but shouldnt at this point
+                    viewModel.AddSyncLogItem("Upload sync file...", " Ok", viewModel.visibleFalse, viewModel.ColorGreen);
+                    if (UploadFile(localTempFilePath, "/" + newFileName + ".json", true))
+                    {
+                        await Task.Delay(700);
+                        viewModel.updateStatusLastItem(" Ok", viewModel.ColorGreen, viewModel.visibleTrue);
+                        LogMessage("Upload save game", $"success to {FtpAddress}", ColorGreen);
+
+                        exitWindowNoError(viewModel);
+
+                        // Set selected file for remote same
+                        SelectedFileRemote = SelectedFileLocal;
+
+                        // Save settings
+                        await CMDsaveSettings();
+
+                        return;
+                    }
+                    else
+                    {
+                        // Upload not successfull
+                        await Task.Delay(800);
+                        viewModel.updateStatusLastItem(" Fail", viewModel.ColorRed, viewModel.visibleTrue);
+                        exitWindowWithError(viewModel);
+                        return;
+                    }
+                }
+                else
+                {
+                    LogMessage("User abort on", "Server File New", ColorRed);
+                    exitWindowWithError(viewModel);
+                    return;
+                }
+            }
+            else // must be existing file overwrite
+            {
+                // Download sync file
+                // Read last line
+                // Last Item Download/Upload?
             }
 
         }
+        private async void exitWindowWithError(SyncWindowViewModel viewmodel)
+        {
+            viewmodel.AddSyncLogItem("Exiting...", "Now!", viewmodel.visibleTrue, viewmodel.ColorRed);
+            await Task.Delay(2300);
+            viewmodel.CloseWindow();
+            StartUpdateTimer();
+        }
 
+        private async void exitWindowNoError(SyncWindowViewModel viewmodel)
+        {
+            viewmodel.AddSyncLogItem("Exiting...", "Now", viewmodel.visibleTrue, viewmodel.ColorGreen);
+            await Task.Delay(1700);
+            viewmodel.CloseWindow();
+            StartUpdateTimer();
+        }
+        private void appendToSyncLog(string file, SyncStatusType syncstat, string message)
+        {
+            // Prepare new log entry
+            var syncStatus = new SyncStatus
+            {
+                Timestamp = DateTime.UtcNow,
+                User = _name,
+                Action = syncstat,
+                Message = message
+            };
+
+            // Append the new log entry as JSON
+            using (StreamWriter sw = new StreamWriter(file, true)) // True to append
+            {
+                string jsonLog = JsonSerializer.Serialize(syncStatus);
+                sw.WriteLine(jsonLog);
+            }
+
+
+        }
+
+        public bool FileExists(string filePath)
+        {
+            using (FtpClient client = new FtpClient(_ftpAddress))
+            {
+                client.Credentials = new System.Net.NetworkCredential(_ftpUser, _ftpPassword);
+                client.Connect();
+
+                return client.FileExists(filePath);
+            }
+        }
+
+        public bool UploadFile(string localPath, string remotePath, bool overwrite = false)
+        {
+            using (FtpClient client = new FtpClient(_ftpAddress))
+            {
+                client.Credentials = new System.Net.NetworkCredential(_ftpUser, _ftpPassword);
+                client.Connect();
+
+                try
+                {
+                    client.UploadFile(localPath, remotePath, overwrite ? FtpRemoteExists.Overwrite : FtpRemoteExists.Skip);
+                    client.Disconnect();
+                    return true; // Successfully uploaded
+                }
+                catch (Exception ex)
+                {
+                    client.Disconnect();
+                    LogMessage($"Error uploading file:", $"{ex.Message}", ColorRed);
+                    return false; // Failed to upload
+                }
+            }
+        }
+        private async Task<bool> askCreateNewFile(SyncWindowViewModel viewmodel)
+        {
+            //Ask User if he wants to create new file
+            await Task.Delay(1000);
+            viewmodel.AddSyncLogItem("Upload new file!", "", viewmodel.visibleTrue, viewmodel.ColorYellow);
+            viewmodel.AddSyncLogItem(" ", "Create New?", viewmodel.visibleTrue, viewmodel.ColorYellow);
+            await Task.Delay(500);
+            viewmodel.showButtons();
+            // Wait for button click and than return
+            bool clickResult = await WaitForButtonClick(viewmodel);
+            viewmodel.hideButtons();
+
+            return clickResult;
+        }
+        private async Task<bool> testFTPConnection(SyncWindowViewModel viewmodel)
+        {
+            try
+            {
+                var client = new FtpClient(FtpAddress, FtpUser, FtpPassword);
+                client.Connect();
+                viewmodel.updateStatusLastItem(" Ok", viewmodel.ColorGreen, viewmodel.visibleTrue);
+                client.Disconnect();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                viewmodel.updateStatusLastItem(" Fail", viewmodel.ColorRed, viewmodel.visibleTrue);
+                viewmodel.AddSyncLogItem($"Connection failed: {ex.Message}", "", viewmodel.visibleTrue, viewmodel.ColorRed);
+                viewmodel.AddSyncLogItem($"Click any Button to close window...", "", viewmodel.visibleTrue, viewmodel.ColorRed);
+                viewmodel.showButtons();
+
+                // Wait for button click and than return
+                bool clickResult = await WaitForButtonClick(viewmodel);
+                LogMessage("FTP connection", $"Error: {ex.Message}", ColorRed);
+                return false;
+
+            }
+        }
         // Method to control the timer
         private void StopUpdateTimer()
         {
@@ -1218,6 +1428,14 @@ namespace SatisfatorySync.ViewModels
         public string selectedFileRemote { get; set; } = string.Empty;
         public string blueprintsPath { get; set; } = string.Empty;
         public bool syncBlueprints { get; set; } = false;
+    }
+
+    public class SyncStatus
+    {
+        public DateTime Timestamp { get; set; }
+        public string User { get; set; }
+        public SyncStatusType Action { get; set; }
+        public string Message { get; set; }
     }
 
 #pragma warning restore CA1822 // Mark members as static

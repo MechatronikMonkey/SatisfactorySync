@@ -24,6 +24,8 @@ namespace SatisfatorySync.ViewModels
 
         public ObservableCollection<SyncLogItem> SyncLogList { get; set; }
 
+        public event EventHandler CloseRequested;
+
         public ReactiveCommand<Unit, bool> YesCommand { get; }
         public ReactiveCommand<Unit, bool> NoCommand { get; }
 
@@ -35,6 +37,13 @@ namespace SatisfatorySync.ViewModels
             // Initialize commands
             YesCommand = ReactiveCommand.Create(() => true);
             NoCommand = ReactiveCommand.Create(() => false);
+        }
+
+        public void CloseWindow()
+        {
+            // Logic to signal that the window should close
+            // You might need to invoke an event or similar to notify the View
+            CloseRequested?.Invoke(this, EventArgs.Empty);
         }
 
         private void initSyncLog()

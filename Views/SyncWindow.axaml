@@ -36,7 +36,7 @@
 				<ItemsControl.ItemTemplate>
 					<DataTemplate>
 						<StackPanel Orientation="Horizontal">
-							<TextBlock Text="{Binding Text}" Foreground="#efefef" FontSize="9" FontFamily="{StaticResource PixelFont}" Margin="0,10,0,0">
+							<TextBlock Text="{Binding Text}" Foreground="#efefef" FontSize="9" FontFamily="{StaticResource PixelFont}" Margin="0,10,0,0" TextWrapping="Wrap" MaxWidth="270">
 								<TextBlock.Effect>
 									<DropShadowEffect BlurRadius="2" Color="#6bffc1" OffsetX="2" OffsetY="2" Opacity="0.6"/>
 								</TextBlock.Effect>
