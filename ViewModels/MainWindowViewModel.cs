@@ -638,9 +638,26 @@ namespace SatisfatorySync.ViewModels
 
         private async void CMDstartUPLOAD()
         {
-            var syncWindow = new SyncWindow();
-            await syncWindow.ShowDialog(GetMainWindow());
+            var viewModel = new SyncWindowViewModel();
+            var syncWindow = new SyncWindow(viewModel);
+            syncWindow.Show(GetMainWindow());
+
+            StopUpdateTimer();
+            await Task.Delay(2000);
+
+            viewModel.updateStatusLastItem(" Ok", viewModel.ColorGreen, viewModel.visibleTrue);
         }
+
+        // Method to control the timer
+        private void StopUpdateTimer()
+        {
+            _timer?.Stop();
+        }
+        private void StartUpdateTimer()
+        {
+            _timer?.Start();
+        }
+
         private void LoadSettingsOnStartup()
         {
             // Get the path to the user's application data directory

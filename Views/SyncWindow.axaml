@@ -41,7 +41,7 @@
 									<DropShadowEffect BlurRadius="2" Color="#6bffc1" OffsetX="2" OffsetY="2" Opacity="0.6"/>
 								</TextBlock.Effect>
 							</TextBlock>
-							<TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}" FontSize="9" FontFamily="{StaticResource PixelFont}" Margin="0,10,0,0">
+							<TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}" FontSize="9" FontFamily="{StaticResource PixelFont}" Margin="0,10,0,0" IsVisible="{Binding StatusVisible}">
 								<TextBlock.Effect>
 									<DropShadowEffect BlurRadius="2" Color="#6bffc1" OffsetX="2" OffsetY="2" Opacity="0.6"/>
 								</TextBlock.Effect>
