@@ -646,6 +646,20 @@ namespace SatisfatorySync.ViewModels
             await Task.Delay(2000);
 
             viewModel.updateStatusLastItem(" Ok", viewModel.ColorGreen, viewModel.visibleTrue);
+
+            viewModel.showButtons();
+            bool clickResult = await WaitForButtonClick(viewModel);
+            viewModel.hideButtons();
+
+            if (clickResult)
+            {
+                viewModel.AddSyncLogItem("Clicked YES...", " YES", viewModel.visibleTrue, viewModel.ColorGreen);
+            }
+            else
+            {
+                viewModel.AddSyncLogItem("Clicked NO...", " NO", viewModel.visibleTrue, viewModel.ColorRed);
+            }
+
         }
 
         // Method to control the timer
@@ -656,6 +670,13 @@ namespace SatisfatorySync.ViewModels
         private void StartUpdateTimer()
         {
             _timer?.Start();
+        }
+
+        private async Task<bool> WaitForButtonClick(SyncWindowViewModel viewModel)
+        {
+            // Create an observable to return the button click result
+            return await viewModel.YesCommand.Select(result => result).FirstAsync()
+                   .Merge(viewModel.NoCommand.Select(result => result)).FirstAsync();
         }
 
         private void LoadSettingsOnStartup()

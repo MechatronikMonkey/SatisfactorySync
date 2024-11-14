@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Reactive;
 
 namespace SatisfatorySync.ViewModels
 {
@@ -23,10 +24,17 @@ namespace SatisfatorySync.ViewModels
 
         public ObservableCollection<SyncLogItem> SyncLogList { get; set; }
 
-        public SyncWindowViewModel()
+        public ReactiveCommand<Unit, bool> YesCommand { get; }
+        public ReactiveCommand<Unit, bool> NoCommand { get; }
+
+        public SyncWindowViewModel() // Constructor
         {
-            // Constructor logic here
+            // Initialize SyncLog
             initSyncLog();
+
+            // Initialize commands
+            YesCommand = ReactiveCommand.Create(() => true);
+            NoCommand = ReactiveCommand.Create(() => false);
         }
 
         private void initSyncLog()

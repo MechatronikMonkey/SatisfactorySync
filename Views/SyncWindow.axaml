@@ -61,7 +61,8 @@
 				Canvas.Top="357"
 				Background="Transparent"
 				FontFamily="{StaticResource PixelFont}"
-				IsVisible="{Binding ButtonVisible}">
+				IsVisible="{Binding ButtonVisible}"
+				Command="{Binding YesCommand}">
 			<TextBlock Text="YES -"
 					   Foreground="White">
 				<TextBlock.Effect>
@@ -78,7 +79,8 @@
 				Canvas.Top="400"
 				Background="Transparent"
 				FontFamily="{StaticResource PixelFont}"
-				IsVisible="{Binding ButtonVisible}">
+				IsVisible="{Binding ButtonVisible}"
+				Command="{Binding NoCommand}">
 			<TextBlock Text=" NO -"
 					   Foreground="White">
 				<TextBlock.Effect>
