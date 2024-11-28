@@ -7,6 +7,11 @@ namespace SatisfatorySync.Views;
 
 public partial class SyncWindow : Window
 {
+    public SyncWindow()
+    {
+        InitializeComponent();
+    }
+
     public SyncWindow(SyncWindowViewModel viewModel)
     {
         InitializeComponent();

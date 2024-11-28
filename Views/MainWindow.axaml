@@ -58,14 +58,14 @@
 							<TextBlock Text="{Binding LocalPlaytime}" Foreground="#105ce8" FontWeight="Bold" FontSize="18"/>
 						</StackPanel>
 
-						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-							<TextBlock Text="Last Push Name: " FontWeight="Bold" Foreground="Gray"/>
-							<TextBlock Text="{Binding LastPushName}" Foreground="#105ce8"/>
+						<StackPanel Orientation="Horizontal" Margin="0,5,0,10">
+							<TextBlock Text="Last Download Name: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding LastDownloadName}" Foreground="#105ce8"/>
 						</StackPanel>
 
 						<StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-							<TextBlock Text="Last Push Date: " FontWeight="Bold" Foreground="Gray"/>
-							<TextBlock Text="{Binding LastPushDate}" Foreground="#105ce8"/>
+							<TextBlock Text="Last Download Date: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding LastDownloadDate}" Foreground="#105ce8"/>
 						</StackPanel>
 					</StackPanel>
 
@@ -95,14 +95,14 @@
 							<TextBlock Text="{Binding RemotePlaytime}" Foreground="#13bd13" FontWeight="Bold" FontSize="18"/>
 						</StackPanel>
 
-						<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-							<TextBlock Text="Last Push Name: " FontWeight="Bold" Foreground="Gray"/>
-							<TextBlock Text="{Binding RemoteLastPushName}" Foreground="#13bd13"/>
+						<StackPanel Orientation="Horizontal" Margin="0,5,0,10">
+							<TextBlock Text="Last Upload Name: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding LastUploadName}" Foreground="#13bd13"/>
 						</StackPanel>
 
 						<StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-							<TextBlock Text="Last Push Date: " FontWeight="Bold" Foreground="Gray"/>
-							<TextBlock Text="{Binding RemoteLastPushDate}" Foreground="#13bd13"/>
+							<TextBlock Text="Last Upload Date: " FontWeight="Bold" Foreground="Gray"/>
+							<TextBlock Text="{Binding LastUploadDate}" Foreground="#13bd13"/>
 						</StackPanel>
 					</StackPanel>
 				</Grid>

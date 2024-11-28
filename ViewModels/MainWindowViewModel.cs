@@ -26,6 +26,7 @@ using Tmds.DBus.Protocol;
 using static SatisfatorySync.ViewModels.MainWindowViewModel;
 using FluentFTP.Helpers;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 
 
@@ -39,6 +40,9 @@ namespace SatisfatorySync.ViewModels
         private string ColorYellow { get; } = "#fcffb3";
         private string ColorGreen { get; } = "#b3ffb8";
         private string NewItem { get; } = "--- NEW ---";
+
+        private TimeSpan? RawRemotePlaytime { get; set; }
+        private TimeSpan? RawLocalPlaytime { get; set; }
 
         private byte[] LocalHeaderData { get; set; } = new byte[512];  // Initialize a byte array to hold 512 bytes.
         private byte[] RemoteHeaderData { get; set; } = new byte[512];  // Initialize a byte array to hold 512 bytes.
@@ -77,18 +81,18 @@ namespace SatisfatorySync.ViewModels
             set => this.RaiseAndSetIfChanged(ref _localPlaytime, value);
         }
 
-        private string _lastPushName = "Test User";
-        public string LastPushName
+        private string _lastDownloadName = "Test User";
+        public string LastDownloadName
         {
-            get => _lastPushName;
-            set => this.RaiseAndSetIfChanged(ref _lastPushName, value);
+            get => _lastDownloadName;
+            set => this.RaiseAndSetIfChanged(ref _lastDownloadName, value);
         }
 
-        private string _lastPushDate = "2024-10-22";
-        public string LastPushDate
+        private string _lastDownloadDate = "2024-10-22";
+        public string LastDownloadDate
         {
-            get => _lastPushDate;
-            set => this.RaiseAndSetIfChanged(ref _lastPushDate, value);
+            get => _lastDownloadDate;
+            set => this.RaiseAndSetIfChanged(ref _lastDownloadDate, value);
         }
 
         private string _remoteGameName = "Test Remote Game";
@@ -112,18 +116,18 @@ namespace SatisfatorySync.ViewModels
             set => this.RaiseAndSetIfChanged(ref _remotePlaytime, value);
         }
 
-        private string _remoteLastPushName = "Test Remote User";
-        public string RemoteLastPushName
+        private string _lastUploadName = "Test Remote User";
+        public string LastUploadName
         {
-            get => _remoteLastPushName;
-            set => this.RaiseAndSetIfChanged(ref _remoteLastPushName, value);
+            get => _lastUploadName;
+            set => this.RaiseAndSetIfChanged(ref _lastUploadName, value);
         }
 
-        private string _remoteLastPushDate = "2024-10-21";
-        public string RemoteLastPushDate
+        private string _lastUploadDate = "2024-10-21";
+        public string LastUploadDate
         {
-            get => _remoteLastPushDate;
-            set => this.RaiseAndSetIfChanged(ref _remoteLastPushDate, value);
+            get => _lastUploadDate;
+            set => this.RaiseAndSetIfChanged(ref _lastUploadDate, value);
         }
 
         // Local backing fields for settings
@@ -704,7 +708,7 @@ namespace SatisfatorySync.ViewModels
                     if (UploadFile(_completeFilePath, "/" + SelectedFileLocal))
                     {
                         // Successfully uploaded the save game
-                        appendToSyncLog(localTempFilePath, SyncStatusType.Upload, "first creation of file.");
+                        appendToSyncLog(localTempFilePath, SyncStatusType.Upload, $"first creation of file.");
                         await Task.Delay(700);
                         viewModel.updateStatusLastItem(" Ok", viewModel.ColorGreen, viewModel.visibleTrue);
 
@@ -722,11 +726,11 @@ namespace SatisfatorySync.ViewModels
                     }
 
                     // Extract filename for json file
-                    string newFileName = SelectedFileLocal.Substring(0, SelectedFileLocal.Length - 4);
+                    string newFileName = buildSyncFileName(_selectedFileLocal);
 
                     // Upload sync file - overwrite if one exists, but shouldnt at this point
                     viewModel.AddSyncLogItem("Upload sync file...", " Ok", viewModel.visibleFalse, viewModel.ColorGreen);
-                    if (UploadFile(localTempFilePath, "/" + newFileName + ".json", true))
+                    if (UploadFile(localTempFilePath, newFileName, true))
                     {
                         await Task.Delay(700);
                         viewModel.updateStatusLastItem(" Ok", viewModel.ColorGreen, viewModel.visibleTrue);
@@ -740,6 +744,9 @@ namespace SatisfatorySync.ViewModels
                         // Save settings
                         await CMDsaveSettings();
 
+                        // Clean up temporary file
+                        File.Delete(localTempFilePath);
+
                         return;
                     }
                     else
@@ -748,6 +755,10 @@ namespace SatisfatorySync.ViewModels
                         await Task.Delay(800);
                         viewModel.updateStatusLastItem(" Fail", viewModel.ColorRed, viewModel.visibleTrue);
                         exitWindowWithError(viewModel);
+
+                        // Clean up temporary file
+                        File.Delete(localTempFilePath);
+
                         return;
                     }
                 }
@@ -758,13 +769,168 @@ namespace SatisfatorySync.ViewModels
                     return;
                 }
             }
-            else // must be existing file overwrite
+            else // must be existing file; overwrite it after backup
             {
                 // Download sync file
-                // Read last line
+                // Create sync file temp
+                string localTempFilePath = Path.GetTempFileName();
+                viewModel.AddSyncLogItem("Download sync file...", " Ok", viewModel.visibleFalse, viewModel.ColorGreen);
+
+                // create ftp path from selected file for sync file
+                string ftpPath = "/" + buildSyncFileName(_selectedFileLocal);
+
+                if (DownloadFile(ftpPath, localTempFilePath, true))
+                {
+                    // Download of file successfull
+                    await Task.Delay(600);
+                    viewModel.updateStatusLastItem(" Ok", viewModel.ColorGreen, viewModel.visibleTrue);
+                }
+                else
+                {
+                    // Error on download
+                    await Task.Delay(800);
+                    viewModel.updateStatusLastItem(" Fail", viewModel.ColorRed, viewModel.visibleTrue);
+                    exitWindowWithError(viewModel);
+                    return;
+                }
+                // Read last lines in array
+                SyncStatus[] lastEntries = ReadLastSyncLogs(localTempFilePath, 1);
+
                 // Last Item Download/Upload?
+                if (lastEntries[0].SyncType == SyncStatusType.Download)
+                {
+                    viewModel.AddSyncLogItem("Last sync state DOWNLOAD", " Ok", viewModel.visibleFalse, viewModel.ColorGreen);
+                    // If it was a Download, check if we where the last user of download
+                    // If so, we can assume that no one downloaded the file after us.
+                    // Go ahead.
+                    if (lastEntries[0].User == MyName)
+                    {
+                        viewModel.AddSyncLogItem($"Last sync name '{MyName}'", " Ok", viewModel.visibleFalse, viewModel.ColorGreen);
+                    }
+                    else
+                    {
+                        // Tell the User that another person downloaded the game in the meantime
+                        viewModel.AddSyncLogItem($"Last sync name '{lastEntries[0].User}'", " Fail", viewModel.visibleFalse, viewModel.ColorGreen);
+                        viewModel.AddSyncLogItem($"User '{lastEntries[0].User}' downloaded file parallel to you.", "", viewModel.visibleFalse, viewModel.ColorGreen);
+                        if (!await askContinueUpload(viewModel))
+                        {
+                            // User aborted! 
+                            exitWindowWithError(viewModel);
+                            return;
+                        }
+                    }
+
+                    // Only reach this point if user want to upload or continue upload
+                    // Check if Playtime LOCAL is BIGGER than on server - so update header Data
+                    viewModel.AddSyncLogItem($"Update Header Data", " Done.", viewModel.visibleFalse, viewModel.ColorGreen);
+                    GetLocalHeaderData();
+                    GetRemoteHeaderData();
+                    ParseLocalHeaderData();
+                    ParseRemoteHeaderData();
+                    viewModel.updateStatusLastItem(" Ok", viewModel.ColorGreen, viewModel.visibleTrue);
+
+                    if (!(RawLocalPlaytime > RawRemotePlaytime))
+                    {
+                        // NO
+                        // Tell the User that playtime on server is bigger than the one he wants to upload
+                        viewModel.AddSyncLogItem($"Playtime missmatch!", "", viewModel.visibleFalse, viewModel.ColorGreen);
+                        viewModel.AddSyncLogItem($"Local Playtime: {LocalPlaytime}", "", viewModel.visibleFalse, viewModel.ColorGreen);
+                        viewModel.AddSyncLogItem($"Remote Playtime: {RemotePlaytime}", "", viewModel.visibleFalse, viewModel.ColorGreen);
+                        if (!await askContinueUpload(viewModel))
+                        {
+                            // User aborted! 
+                            exitWindowWithError(viewModel);
+                            return;
+                        }
+                    }
+                    // YES Path - only reach here if user wants to overwrite the file on server
+                }
+                else if (lastEntries[0].SyncType == SyncStatusType.Upload)
+                {
+                    // Tell the User that last item was upload by a specific user and if he wants to overwrite file?
+                    viewModel.AddSyncLogItem($"User '{lastEntries[0].User}' uploaded file after your download!", "", viewModel.visibleFalse, viewModel.ColorGreen);
+                    viewModel.AddSyncLogItem($"Last sync name '{lastEntries[0].User}'", "", viewModel.visibleFalse, viewModel.ColorGreen);
+                    if (!await askContinueUpload(viewModel))
+                    {
+                        // User aborted! 
+                        exitWindowWithError(viewModel);
+                        return;
+                    }
+
+                }
+                else
+                {
+                    // Should not happen! 
+                    exitWindowWithError(viewModel);
+                    return;
+                }
+
+                // Only reach here if user wants to overwrite the savegame
+                // Overwrite it and give feedback now
+                HandleExistingFileOverwrite(viewModel);
+            }
+        }
+
+        private void HandleExistingFileOverwrite(SyncWindowViewModel viewModel)
+        {
+            string serverFilePath = "/" + SelectedFileLocal;
+            string backupFilePath = "/backup_" + SelectedFileLocal; // Adjust naming convention as necessary
+            string localTempFilePath = Path.GetTempFileName();
+
+            viewModel.AddSyncLogItem("Backup of existing file downloaded...", " Ok", viewModel.visibleFalse, viewModel.ColorGreen);
+            // Step 1: Download current server file to create a backup
+            if (DownloadFile(serverFilePath, localTempFilePath, true))
+            {
+                viewModel.updateStatusLastItem(" Ok.", viewModel.ColorGreen, viewModel.visibleTrue);
+            }
+            else
+            {
+                viewModel.updateStatusLastItem(" Fail!", viewModel.ColorRed, viewModel.visibleTrue);
+                exitWindowWithError(viewModel);
+                return;
             }
 
+            // Step 2: Upload the downloaded file as a backup
+            viewModel.AddSyncLogItem("Backup upload...", " Ok", viewModel.visibleFalse, viewModel.ColorGreen);
+
+            if (UploadFile(localTempFilePath, backupFilePath, true))
+            {
+                viewModel.updateStatusLastItem(" Ok.", viewModel.ColorGreen, viewModel.visibleTrue);
+            }
+            else
+            {
+                viewModel.updateStatusLastItem(" Fail!", viewModel.ColorRed, viewModel.visibleTrue);
+                exitWindowWithError(viewModel);
+                return;
+            }
+
+            // Step 3: Upload the new local file to overwrite the existing server file
+            string completeLocalFilePath = Path.Combine(FilePath, _selectedFileLocal);
+            viewModel.AddSyncLogItem("Uploading new file...", " In Progress", viewModel.visibleTrue, viewModel.ColorYellow); // Show in progress
+
+            if (UploadFile(completeLocalFilePath, serverFilePath, true)) // Overwrite existing server file
+            {
+                viewModel.updateStatusLastItem(" Ok.", viewModel.ColorGreen, viewModel.visibleTrue);
+                LogMessage("Upload save game", $"success to {FtpAddress}", ColorGreen);
+            }
+            else
+            {
+                viewModel.updateStatusLastItem(" Fail!", viewModel.ColorRed, viewModel.visibleTrue);
+                exitWindowWithError(viewModel);
+                return;
+            }
+
+            // Clean up temporary file
+            File.Delete(localTempFilePath);
+
+            // Additional feedback can be provided here if needed
+            exitWindowNoError(viewModel);
+        }
+
+        private string buildSyncFileName(string localFileName)
+        {
+            string newFileName = localFileName.Substring(0, localFileName.Length - 4);
+            return "/" + newFileName + ".json";
         }
         private async void exitWindowWithError(SyncWindowViewModel viewmodel)
         {
@@ -788,9 +954,17 @@ namespace SatisfatorySync.ViewModels
             {
                 Timestamp = DateTime.UtcNow,
                 User = _name,
-                Action = syncstat,
-                Message = message
+                SyncType = syncstat,
+                Message = message,
+                Playtime = _localPlaytime
             };
+
+            // Configure JsonSerializerOptions to include the JsonStringEnumConverter
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true // Optional: Makes the JSON output more readable
+            };
+            options.Converters.Add(new JsonStringEnumConverter());
 
             // Append the new log entry as JSON
             using (StreamWriter sw = new StreamWriter(file, true)) // True to append
@@ -798,8 +972,31 @@ namespace SatisfatorySync.ViewModels
                 string jsonLog = JsonSerializer.Serialize(syncStatus);
                 sw.WriteLine(jsonLog);
             }
+        }
 
+        private SyncStatus[] ReadLastSyncLogs(string filePath, int numberOfLines = 4)
+        {
+            try
+            {
+                // Read all lines from the file
+                var lines = File.ReadLines(filePath).Reverse().Take(numberOfLines).ToArray(); // Get last N lines
 
+                // Prepare an array for the parsed SyncStatus objects
+                SyncStatus[] syncStatuses = new SyncStatus[lines.Length];
+
+                // Deserialize each line into a SyncStatus object
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    syncStatuses[i] = JsonSerializer.Deserialize<SyncStatus>(lines[i]);
+                }
+
+                return syncStatuses;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading log file: {ex.Message}");
+                return Array.Empty<SyncStatus>(); // Return an empty array on error
+            }
         }
 
         public bool FileExists(string filePath)
@@ -834,6 +1031,44 @@ namespace SatisfatorySync.ViewModels
                 }
             }
         }
+
+        public bool DownloadFile(string remotePath, string localPath, bool overwrite = false)
+        {
+            using (FtpClient client = new FtpClient(_ftpAddress))
+            {
+                client.Credentials = new System.Net.NetworkCredential(_ftpUser, _ftpPassword);
+                client.Connect();
+
+                // Check if the file exists before downloading
+                if (client.FileExists(remotePath))
+                {
+                    try
+                    {
+                        client.DownloadFile(localPath, remotePath);
+                        return true; // Successfully downloaded
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMessage("Error downloading file", $" {ex.Message}", ColorRed);
+                        return false; // Failed to download
+                    }
+                }
+                else
+                {
+                    // Create an empty file if it does not exist
+                    try
+                    {
+                        File.Create(localPath).Dispose();
+                        return true; // Successfully created an empty file
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMessage("Error creating local file", $" {ex.Message}", ColorRed);
+                        return false; // Failed to create an empty file
+                    }
+                }
+            }
+        }
         private async Task<bool> askCreateNewFile(SyncWindowViewModel viewmodel)
         {
             //Ask User if he wants to create new file
@@ -848,6 +1083,22 @@ namespace SatisfatorySync.ViewModels
 
             return clickResult;
         }
+
+        private async Task<bool> askContinueUpload(SyncWindowViewModel viewmodel)
+        {
+            //Ask User if he wants to create new file
+            await Task.Delay(1000);
+            viewmodel.AddSyncLogItem("Overwrite on server!", "", viewmodel.visibleTrue, viewmodel.ColorYellow);
+            viewmodel.AddSyncLogItem(" ", "Continue Upload?", viewmodel.visibleTrue, viewmodel.ColorYellow);
+            await Task.Delay(500);
+            viewmodel.showButtons();
+            // Wait for button click and than return
+            bool clickResult = await WaitForButtonClick(viewmodel);
+            viewmodel.hideButtons();
+
+            return clickResult;
+        }
+
         private async Task<bool> testFTPConnection(SyncWindowViewModel viewmodel)
         {
             try
@@ -1044,7 +1295,7 @@ namespace SatisfatorySync.ViewModels
                         LocalHeaderData = readData; // Store data
 
                         // Log a successful entry
-                        LogMessage("Local header data read", "successful", ColorGreen);
+                        //LogMessage("Local header data read", "successful", ColorGreen);
                     }
                 }
                 else
@@ -1100,7 +1351,7 @@ namespace SatisfatorySync.ViewModels
                         RemoteHeaderData = readData; // Store data
 
                         // Log a successful entry
-                        LogMessage("Remote header data read", "successful", ColorGreen);
+                        //LogMessage("Remote header data read", "successful", ColorGreen);
                     }
                 }
                 catch (Exception ex)
@@ -1253,8 +1504,8 @@ namespace SatisfatorySync.ViewModels
                 LocalGameName = string.Empty;
                 LocalSessionDefinition = string.Empty;
                 LocalPlaytime = string.Empty;
-                LastPushName = string.Empty;
-                LastPushDate = string.Empty;
+                LastUploadName = string.Empty;
+                LastUploadDate = string.Empty;
 
                 LogMessage("Warning: Selected local file is a new item. Parsing will be skipped.", string.Empty, ColorYellow);
                 return; // Exit the method
@@ -1272,7 +1523,7 @@ namespace SatisfatorySync.ViewModels
                 LocalSessionDefinition = sessionDefinition;
 
                 // Optionally, log or display the extracted string
-                LogMessage("Extracted Session Definition:", sessionDefinition, ColorGreen);
+                //LogMessage("Extracted Session Definition:", sessionDefinition, ColorGreen);
             }
             else
             {
@@ -1283,7 +1534,7 @@ namespace SatisfatorySync.ViewModels
             if (gameName != null)
             {
                 LocalGameName = gameName;
-                LogMessage("Extracted Game Name:", gameName, ColorGreen);
+                //LogMessage("Extracted Game Name:", gameName, ColorGreen);
             }
             else
             {
@@ -1292,10 +1543,11 @@ namespace SatisfatorySync.ViewModels
 
             if (gameTime.HasValue)
             {
+                RawLocalPlaytime = gameTime.Value; // Save raw time for later
                 TimeSpan duration = gameTime.Value;
                 string formattedDuration = $"{(int)duration.TotalHours:D2}H {duration.Minutes:D2}m {duration.Seconds:D2}s";
                 LocalPlaytime = formattedDuration;
-                LogMessage("Extracted Game Time:", formattedDuration, ColorGreen);
+                //LogMessage("Extracted Game Time:", formattedDuration, ColorGreen);
             }
             else
             {
@@ -1320,8 +1572,8 @@ namespace SatisfatorySync.ViewModels
                 RemoteGameName = string.Empty;
                 RemoteSessionDefinition = string.Empty;
                 RemotePlaytime = string.Empty;
-                RemoteLastPushName = string.Empty;
-                RemoteLastPushDate = string.Empty;
+                LastUploadName = string.Empty;
+                LastUploadDate = string.Empty;
 
                 LogMessage("Warning: Selected remote file is a new item. Parsing will be skipped.", string.Empty, ColorYellow);
                 return; // Exit the method
@@ -1337,7 +1589,7 @@ namespace SatisfatorySync.ViewModels
             {
                 // Store or use the extracted session definition string
                 RemoteSessionDefinition = sessionDefinition; // Assuming you have this property
-                LogMessage("Extracted Remote Session Definition:", sessionDefinition, ColorGreen);
+                //LogMessage("Extracted Remote Session Definition:", sessionDefinition, ColorGreen);
             }
             else
             {
@@ -1348,7 +1600,7 @@ namespace SatisfatorySync.ViewModels
             if (gameName != null)
             {
                 RemoteGameName = gameName; // Assuming you have this property for remote game name
-                LogMessage("Extracted Remote Game Name:", gameName, ColorGreen);
+                //LogMessage("Extracted Remote Game Name:", gameName, ColorGreen);
             }
             else
             {
@@ -1357,10 +1609,11 @@ namespace SatisfatorySync.ViewModels
 
             if (gameTime.HasValue)
             {
+                RawRemotePlaytime = gameTime.Value;
                 TimeSpan duration = gameTime.Value;
                 string formattedDuration = $"{(int)duration.TotalHours:D2}H {duration.Minutes:D2}m {duration.Seconds:D2}s";
                 RemotePlaytime = formattedDuration; // Assuming you have this property for remote playtime
-                LogMessage("Extracted Remote Game Time:", formattedDuration, ColorGreen);
+                //LogMessage("Extracted Remote Game Time:", formattedDuration, ColorGreen);
             }
             else
             {
@@ -1434,7 +1687,11 @@ namespace SatisfatorySync.ViewModels
     {
         public DateTime Timestamp { get; set; }
         public string User { get; set; }
-        public SyncStatusType Action { get; set; }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))] // This attribute will format the enum as a string
+
+        public SyncStatusType SyncType { get; set; }
+        public string Playtime { get; set; }
         public string Message { get; set; }
     }
 

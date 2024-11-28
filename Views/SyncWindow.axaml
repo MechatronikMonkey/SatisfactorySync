@@ -3,18 +3,19 @@
         xmlns:vm="using:SatisfatorySync.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="620"
+        mc:Ignorable="d" d:DesignWidth="1190" d:DesignHeight="600"
         x:Class="SatisfatorySync.Views.SyncWindow"
         x:DataType="vm:SyncWindowViewModel"
         Icon="/Assets/satsync.ico"
         Title="SatisfatorySync"
-        Width="1100"
-        Height="620"
+        Width="1190"
+        Height="600"
 		WindowStartupLocation="CenterOwner"
 		CanResize="False"
 		ShowInTaskbar="False"
 		SystemDecorations="None"
 		Background="Transparent">
+	
 	<Window.DataContext>
 		<vm:SyncWindowViewModel/>
 	</Window.DataContext>
